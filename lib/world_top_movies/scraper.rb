@@ -1,0 +1,3 @@
+class WorldTopMovies::Scraper
+  
+end

@@ -1,0 +1,3 @@
+class WorldTopMovies::Movie
+
+end

@@ -5,6 +5,8 @@ require 'open-uri'
 require_relative '../lib/world_top_movies/cli'
 require_relative '../lib/world_top_movies/movie'
 require_relative '../lib/world_top_movies/scraper'
+require_relative '../lib/world_top_movies/scraper/top_movies_general'
+require_relative '../lib/world_top_movies/scraper/top_movies_by_genre'
 
 
 # JOKES

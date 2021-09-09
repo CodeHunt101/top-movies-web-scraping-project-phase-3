@@ -1,5 +1,5 @@
 class WorldTopMovies::Movie
-  attr_accessor :id, :title, :year, :imdb_rating, :link, :description, :director, :genre
+  attr_accessor :id, :title, :year, :duration, :genre, :user_rating, :description, :director, :stars, :votes, :gross, :link,
   
   @@all =[]
 

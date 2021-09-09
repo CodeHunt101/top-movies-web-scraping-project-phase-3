@@ -1,7 +1,7 @@
 class TopMoviesGeneral < WorldTopMovies::Scraper
     
   def get_movies
-    self.get_top_movies_page.css("tr").slice(1..-1)
+    self.get_top_movies_general_page.css("tr").slice(1..-1)
   end
 
   def make_movies

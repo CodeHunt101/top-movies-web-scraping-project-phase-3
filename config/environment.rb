@@ -1,12 +1,17 @@
 require 'pry'
 require 'nokogiri'
 require 'open-uri'
+require 'HTTParty'
+require 'colorize'
+require 'artii'
+require 'awesome_print'
+require "tty-prompt"
+
 
 require_relative '../lib/world_top_movies/cli'
 require_relative '../lib/world_top_movies/movie'
 require_relative '../lib/world_top_movies/scraper'
-require_relative '../lib/world_top_movies/scraper/top_movies_general'
-require_relative '../lib/world_top_movies/scraper/top_movies_by_genre'
+
 
 
 # JOKES

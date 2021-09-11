@@ -1,23 +1,23 @@
 class WorldTopMovies::Scraper
   attr_accessor :genre
   @@genres = [
-    "action",
-    "adventure",
-    "animation",
-    "biography",
-    "comedy",
-    "crime",
-    "drama",
-    "family",
-    "fantasy",
-    "history",
-    "horror",
-    "mystery",
-    "romance",
-    "scr-fi",
-    "sport",
-    "thriller",
-    "war"
+    "Action",
+    "Adventure",
+    "Animation",
+    "Biography",
+    "Comedy",
+    "Crime",
+    "Drama",
+    "Family",
+    "Fantasy",
+    "History",
+    "Horror",
+    "Mystery",
+    "Romance",
+    "Sci-Fi",
+    "Sport",
+    "Thriller",
+    "War"
   ]
 
   def initialize(genre = nil)
@@ -29,7 +29,7 @@ class WorldTopMovies::Scraper
   end
 
   def genre
-    @genre
+    @genre ? @genre.downcase : nil
   end
   
   def get_top_movies_page
@@ -43,29 +43,15 @@ class WorldTopMovies::Scraper
 
   def make_movies
     self.get_movies.each do |m|
-      movie = WorldTopMovies::Movie.new
-      movie.title = m.css("h3 a").text
-      movie.year = m.css("h3 span.lister-item-year").text[1...-1]
-      movie.duration = m.css("span.runtime").text
-      movie.genre = m.css("span.genre").text.strip.split(", ")
-      movie.user_rating = m.css("div strong").text.to_f
-      movie.metascore = m.css("div span.metascore").text.strip.to_i
-      movie.description = m.css("p.text-muted")[1].text.strip
-      movie.director = m.css("div.lister-item-content p a")[0].text.strip
-      movie.stars = m.css("div.lister-item-content p a").slice(1..-1).map{|s| s.text}
-      movie.votes = m.css("p.sort-num_votes-visible span")[1].text.gsub(",","").to_i
-      movie.gross_revenue = m.css("p.sort-num_votes-visible span")[-1].text
-      movie.link = "https://imdb.com" + m.css("h3 a").attribute("href").value
-      # binding.pry
-
+      movie = WorldTopMovies::Movie.new_from_page(m)
+      # Fix error from website. Include genre to the genre property if for some reson it's not there
+      self.genre && !movie.genre.include?(self.genre.capitalize) && movie.genre << self.genre.capitalize
     end
-    # binding.pry
+  end
 
+  def self.get_movie_details_page(movie_url)
+    response = HTTParty.get(movie_url)
+    Nokogiri::HTML(response.body)
   end
 
 end
-
-# movies = WorldTopMovies::Scraper.new
-# movies.make_movies("comedy")
-# movies.get_top_movies_page("comedy")
-# puts "This is light blue".colorize(:light_blue)

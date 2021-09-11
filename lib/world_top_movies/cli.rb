@@ -17,6 +17,8 @@ class WorldTopMovies::CLI
     puts '-----------------------------------------------------------------------------------'
     puts artii.asciify('World Top Movies!')
     puts '-----------------------------------------------------------------------------------'
+    puts "    By Harold Torres Marino | p: +61 401 927 123 | e: haroldtm55@gmail.com"
+    puts '-----------------------------------------------------------------------------------'
     sleep(0.5)
     puts "Hey! Do you like movies??!"
     sleep(1.5)
@@ -28,7 +30,7 @@ class WorldTopMovies::CLI
     sleep(2)
     name = self.prompt.ask("May I have your name, please?") do |q|
       q.required(true, "Oops, seems you haven't provided your name. Try again please.")
-      q.validate(/[a-zA-Z][^0-9]/, "Invalid name, please try again.")
+      q.validate(/[a-zA-Z]+$/, "Invalid name, please try again.")
       q.modify   :capitalize
     end
     puts "Thanks #{name}. I'd like to ask you some questions, ok?"
@@ -55,11 +57,22 @@ class WorldTopMovies::CLI
   end
 
   def print_movies_compact
-    
+    puts "\nI'll give you #{WorldTopMovies::Movie.all.size} top movies!"
+    # sleep(1)
+    # puts "\nTitle  -  Rating  -  Year"
+    sleep(1.5)
     WorldTopMovies::Movie.all.each do |m|
-      puts "Title: #{m.title}"
+      puts "--------------------------------------------------------------"
+      puts "\n- #{m.title.colorize(:color => :green, :mode=> :bold)},\
+ Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
+ Year: #{m.year.colorize(:color => :red)} \n"
+      # puts "\n#{m.title} - #{m.user_rating} - #{m.year}\n"
+      # puts "\n#{m.title}
+      # puts "Rating: #{m.user_rating}"
+      # puts "Year: #{m.year} \n"
     end
   
   end
+
 
 end

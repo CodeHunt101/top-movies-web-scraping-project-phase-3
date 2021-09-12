@@ -1,13 +1,24 @@
 class WorldTopMovies::Movie
-  
+  attr_accessor :movie_details_page
   @@all =[]
-  
   def self.all
     @@all
   end
 
   def self.reset_all
     self.all.clear
+  end
+
+  def self.all_titles_and_links_hash
+    result = {}
+    self.all.each do |m|
+      result[m.title] = m.url
+    end
+    result
+  end
+
+  def self.find_by_url(url)
+    self.all.find {|m| m.url == url}
   end
   
   def initialize(attributes)
@@ -24,7 +35,7 @@ class WorldTopMovies::Movie
       title: m.css("h3 a").text,
       year: m.css("h3 span.lister-item-year").text[1...-1].scan(/[0-9]/).join(),
       duration: m.css("span.runtime").text,
-      genre: m.css("span.genre").text.strip.split(", "),
+      genres: m.css("span.genre").text.strip.split(", "),
       user_rating: m.css("div strong").text.to_f,
       metascore: m.css("div span.metascore").text.strip.to_i,
       description: m.css("p.text-muted")[1].text.strip,
@@ -35,33 +46,41 @@ class WorldTopMovies::Movie
       url: "https://imdb.com" + m.css("h3 a").attribute("href").value,
     })
   end
-
-  def all_genres
-    @genre.join(" - ")
-  end
-
-  def stars
-    @stars.join(" - ")
+  
+  def doc
+    @doc || @doc = WorldTopMovies::Scraper.get_movie_details_page(self.url) 
   end
 
   def get_awards_count
-    award = WorldTopMovies::Scraper.get_movie_details_page(self.url).css(
+    award = self.doc.css(
       'li span.ipc-metadata-list-item__list-content-item')[0].text
-    award if award.include?('win' || 'nomination')
+    award if award.include?('nomination') || award.include?('win')
   end
 
   def storyline
-    WorldTopMovies::Scraper.get_movie_details_page(self.url).css(
-      'div.ipc-html-content.ipc-html-content--base div')[0].text
+    self.doc.css(
+      ".Storyline__StorylineWrapper-sc-1b58ttw-0 div.ipc-html-content.ipc-html-content--base div")[0].text
   end
 
-  def details
-    details_list = WorldTopMovies::Scraper.get_movie_details_page(self.url).css('div[data-testid=title-details-section] ul')
-    {
-      countries_of_origin: details_list[2].children.map {|c| c.text}.join(" - "),
-      official_site: details_list[3].children[0].children[0].attribute("href").value,
-      languages: details_list[4].children.map {|l| l.text}.join(" - "),
-    }
+  def languages
+    self.doc.css(
+      'div[data-testid=title-details-section] li[data-testid=title-details-languages]')
+      .children[1].children[0].children.map {|l| l.text}.join(" - ")
+    
+  end
+
+  def official_site
+    target = self.doc.css(
+      'div[data-testid=title-details-section] li[data-testid=title-details-officialsites]')
+      .children
+    if target.children[0] && target.children[0].text.include?("site")
+      target.children[1].children[0].children[0].attribute("href").value 
+    end
+  end
+
+  def countries_of_origin
+    self.doc.css('div[data-testid=title-details-section] li[data-testid=title-details-origin]')
+    .children[1].children[0].children.map {|c| c.text}.join(" - ")
   end
 
 end

@@ -45,7 +45,7 @@ class WorldTopMovies::Scraper
     self.get_movies.each do |m|
       movie = WorldTopMovies::Movie.new_from_page(m)
       # Fix error from website. Include genre to the genre property if for some reson it's not there
-      self.genre && !movie.genre.include?(self.genre.capitalize) && movie.genre << self.genre.capitalize
+      self.genre && !movie.genres.include?(self.genre.capitalize) && movie.genres << self.genre.capitalize
     end
   end
 

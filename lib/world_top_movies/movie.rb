@@ -2,6 +2,8 @@ class WorldTopMovies::Movie
   attr_accessor :award, :storyline, :languages, :official_site, :countries_of_origin
   
   @@all =[]
+
+  @@top_general_all = []
   
   def initialize(attributes)
     attributes.each do |key, value|
@@ -9,7 +11,7 @@ class WorldTopMovies::Movie
       self.send(("#{key}="), value)
     end
     # Add instance to @all only if it's not already there
-    self.class.all << self if WorldTopMovies::Movie.all.none?{|m| m.url == self.url}
+    self.class.all << self if self.class.all.none?{|m| m.url == self.url}
   end
 
   def self.new_from_page(m)
@@ -33,6 +35,15 @@ class WorldTopMovies::Movie
     @@all
   end
 
+  def self.all_by_genre(genre)
+    return self.all_top_general if !genre
+    self.all.select{|m| m.genres.include?(genre)}
+  end
+
+  def self.all_top_general
+    self.all.select{|m| m.user_rating >= 8.4}.sort_by{|m| m.user_rating}.reverse
+  end
+
   def self.reset_all
     self.all.clear
   end
@@ -40,6 +51,14 @@ class WorldTopMovies::Movie
   def self.all_titles_and_links_hash
     result = {}
     self.all.each do |m|
+      result[m.title] = m.url
+    end
+    result
+  end
+
+  def self.all_titles_and_links_hash_by_genre(genre)
+    result = {}
+    self.all_by_genre(genre).each do |m|
       result[m.title] = m.url
     end
     result

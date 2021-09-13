@@ -1,17 +1,21 @@
 class WorldTopMovies::CLI
+  
+  attr_accessor :name, :movie_instance, :genre
+  
   @@prompt = TTY::Prompt.new
-    attr_accessor :name, :movie_instance, :genre
+  
+  
   def self.prompt
     @@prompt
   end
   
   def run
-    introduce
-    scrape_and_generate_movies 
-    print_movies_compact 
+    introduce if !@name
+    scrape_and_generate_movies
+    print_movies_compact(@genre)
     select_specific_movie
     scrape_and_print_chosen_movie
-    # restart
+    restart
   end
 
   # private : set to private once project finished
@@ -41,6 +45,8 @@ class WorldTopMovies::CLI
   end
 
   def scrape_and_generate_movies
+    puts "Genre in scrape_and_generate_movies = #{@genre}!!!!!!!!!"
+    
     # sleep(1.5)
     type_of_scrape = self.class.prompt.select(
       "Would you like to see the list of all movies in general or by genre?",
@@ -58,24 +64,61 @@ class WorldTopMovies::CLI
   end 
 
   def print_movies_compact(genre = nil)
-    puts "\nI'll give you #{WorldTopMovies::Movie.all.size} top movies!"
+    puts "Genre in print_movies_compact = #{@genre}!!!!!!!!!"
+    
     # sleep(1.5)
-    WorldTopMovies::Movie.all.each_with_index do |m,i|
-      # sleep(0.025)
-      puts "--------------------------------------------------------------"
-      puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
- Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
- Year: #{m.year.colorize(:color => :red)} \n"
+    if @genre == nil
+      movies = WorldTopMovies::Movie.all_top_general
+      puts "\nI'll give you #{movies.size} top movies!"
+      movies.each_with_index do |m,i|
+        # sleep(0.025)
+        puts "--------------------------------------------------------------"
+        puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
+    Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
+    Year: #{m.year.colorize(:color => :red)} \n"
+      end
+    else
+      movies = WorldTopMovies::Movie.all_by_genre(genre)
+      puts "\nI'll give you #{movies.size} top movies!"
+      movies.each_with_index do |m,i|
+        # sleep(0.025)
+        puts "--------------------------------------------------------------"
+        puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
+    Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
+    Year: #{m.year.colorize(:color => :red)} \n"
+      end
     end
   end
 
+#   def print_movies_compact(genre = nil)
+#     puts "\nI'll give you #{WorldTopMovies::Movie.all.size} top movies!"
+#     # sleep(1.5)
+#     WorldTopMovies::Movie.all.each_with_index do |m,i|
+#       # sleep(0.025)
+#       puts "--------------------------------------------------------------"
+#       puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
+#  Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
+#  Year: #{m.year.colorize(:color => :red)} \n"
+#     end
+#   end
+
   def select_specific_movie
+    puts "Genre in select_specific_movie = #{@genre}!!!!!!!!!"
+    
     details = self.class.prompt.yes?("Would you like to see more info of any of these movies?")
     return self.bye_propmt if !details
     movie_url = self.class.prompt.enum_select(
-      "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash)
+      "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(@genre))
     @movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
   end
+
+  # def select_specific_movie
+  #   details = self.class.prompt.yes?("Would you like to see more info of any of these movies?")
+  #   return self.bye_propmt if !details
+  #   movie_url = self.class.prompt.enum_select(
+  #     "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash)
+  #   @movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
+  # end
 
   def scrape_and_print_chosen_movie
     puts "\n----------------------------------------------"
@@ -110,15 +153,16 @@ class WorldTopMovies::CLI
       "Print all the movies displayed so far", 
       "Exit" ]
     
-    puts "genre is #{!@genre}"
+      puts "Genre in restart = #{@genre}!!!!!!!!!"
     next_action = self.class.prompt.select(
       "What would you like to do now?", options
     )
     
     if next_action == options[0]
-      run
+      select_specific_movie
+      scrape_and_print_chosen_movie
+      restart
     elsif next_action == options[1]
-      @genre = ""
       run
     elsif next_action == options[2]
       print_movies_compact

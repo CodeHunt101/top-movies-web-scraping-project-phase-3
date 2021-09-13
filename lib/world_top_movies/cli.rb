@@ -1,21 +1,18 @@
 class WorldTopMovies::CLI
   
-  attr_accessor :name, :movie_instance, :genre
+  attr_accessor :name, :movie_instance, :genre, :status
   
   @@prompt = TTY::Prompt.new
-  
   
   def self.prompt
     @@prompt
   end
   
   def run
-    introduce if !@name
-    scrape_and_generate_movies
-    print_movies_compact(@genre)
-    select_specific_movie
-    scrape_and_print_chosen_movie
-    restart
+      introduce if !@name
+      scrape_and_generate_movies  if @status != "exit"
+      print_movies_compact(@genre) if @status != "exit"
+      restart if @status != "exit"
   end
 
   # private : set to private once project finished
@@ -45,8 +42,6 @@ class WorldTopMovies::CLI
   end
 
   def scrape_and_generate_movies
-    puts "Genre in scrape_and_generate_movies = #{@genre}!!!!!!!!!"
-    
     # sleep(1.5)
     type_of_scrape = self.class.prompt.select(
       "Would you like to see the list of all movies in general or by genre?",
@@ -64,61 +59,28 @@ class WorldTopMovies::CLI
   end 
 
   def print_movies_compact(genre = nil)
-    puts "Genre in print_movies_compact = #{@genre}!!!!!!!!!"
-    
-    # sleep(1.5)
-    if @genre == nil
-      movies = WorldTopMovies::Movie.all_top_general
-      puts "\nI'll give you #{movies.size} top movies!"
-      movies.each_with_index do |m,i|
-        # sleep(0.025)
-        puts "--------------------------------------------------------------"
-        puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
-    Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
-    Year: #{m.year.colorize(:color => :red)} \n"
-      end
+
+    if genre == "all"
+      movies = WorldTopMovies::Movie.all.sort_by{|m| m.user_rating}.reverse
     else
-      movies = WorldTopMovies::Movie.all_by_genre(genre)
-      puts "\nI'll give you #{movies.size} top movies!"
-      movies.each_with_index do |m,i|
-        # sleep(0.025)
-        puts "--------------------------------------------------------------"
-        puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
-    Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
-    Year: #{m.year.colorize(:color => :red)} \n"
-      end
+      movies = genre == nil ? WorldTopMovies::Movie.all_top_general : WorldTopMovies::Movie.all_by_genre(genre)
+    end
+    puts "\nI'll give you #{movies.size} top movies!"
+    # sleep(1.5)
+    movies.each_with_index do |m,i|
+      # sleep(0.025)
+      puts "--------------------------------------------------------------"
+      puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
+  Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
+  Year: #{m.year.colorize(:color => :red)} \n"
     end
   end
 
-#   def print_movies_compact(genre = nil)
-#     puts "\nI'll give you #{WorldTopMovies::Movie.all.size} top movies!"
-#     # sleep(1.5)
-#     WorldTopMovies::Movie.all.each_with_index do |m,i|
-#       # sleep(0.025)
-#       puts "--------------------------------------------------------------"
-#       puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
-#  Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
-#  Year: #{m.year.colorize(:color => :red)} \n"
-#     end
-#   end
-
   def select_specific_movie
-    puts "Genre in select_specific_movie = #{@genre}!!!!!!!!!"
-    
-    details = self.class.prompt.yes?("Would you like to see more info of any of these movies?")
-    return self.bye_propmt if !details
     movie_url = self.class.prompt.enum_select(
       "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(@genre))
     @movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
   end
-
-  # def select_specific_movie
-  #   details = self.class.prompt.yes?("Would you like to see more info of any of these movies?")
-  #   return self.bye_propmt if !details
-  #   movie_url = self.class.prompt.enum_select(
-  #     "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash)
-  #   @movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
-  # end
 
   def scrape_and_print_chosen_movie
     puts "\n----------------------------------------------"
@@ -143,17 +105,17 @@ class WorldTopMovies::CLI
   end
 
   def bye_propmt
+    @status = "exit"
     puts "Ok #{@name}, hope you enjoyed your time with me!"
   end
 
   def restart
     options = [
-      "See more info from another movie in the last list", 
+      "See more info of a movie from the last list", 
       "Start a new lookup", 
-      "Print all the movies displayed so far", 
+      "Print all the movies displayed so far and exit", 
       "Exit" ]
-    
-      puts "Genre in restart = #{@genre}!!!!!!!!!"
+
     next_action = self.class.prompt.select(
       "What would you like to do now?", options
     )
@@ -165,29 +127,11 @@ class WorldTopMovies::CLI
     elsif next_action == options[1]
       run
     elsif next_action == options[2]
-      print_movies_compact
+      print_movies_compact("all")
+      bye_propmt
     else
       bye_propmt
     end
-
-    # next_action_options[next_action]  why this doesn't work?
-
-    # next_action == options[0] && select_specific_movie
-    # next_action == options[1] && run
-    # next_action == options[2] && print_movies_compact
-    # next_action == option[3] && bye_propmt
-
-  end
-
-  def next_action_options
-    hash = {
-      "See more info from another movie in the last list"=> select_specific_movie,
-      "Start a new lookup"=> run,
-      "Print all the movies displayed so far"=> print_movies_compact,
-      "Exit"=> bye_propmt
-    }
-
   end
   
-
 end

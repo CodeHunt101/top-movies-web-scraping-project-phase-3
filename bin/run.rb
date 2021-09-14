@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-require_relative '../lib/world_top_movies.rb'
+require_relative '../lib/world_top_movies'
 
-app = WorldTopMovies::CLI.new
-app.run
+WorldTopMovies::CLI.new.run

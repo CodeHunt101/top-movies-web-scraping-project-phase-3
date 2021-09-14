@@ -15,60 +15,58 @@ class WorldTopMovies::CLI
       restart if @status != "exit"
   end
 
-  # private : set to private once project finished
+  private #: set to private once project finished
 
   def introduce
     artii = Artii::Base.new({})
     puts '-----------------------------------------------------------------------------------'
     puts artii.asciify('World Top Movies!')
     puts '-----------------------------------------------------------------------------------'
-    puts "    By Harold Torres Marino | p: +61 401 927 123 | e: haroldtm55@gmail.com"
+    puts "    By Harold Torres Marino | p: +61 401 927 123 | e: haroldtm55@gmail.com".colorize(:mode=>:italic)
     puts '-----------------------------------------------------------------------------------'
-    # sleep(0.5)
+    sleep(0.5)
     puts "Hey! Do you like movies??!"
-    # sleep(1.5)
+    sleep(1.5)
     puts "I'm sure you do!"
-    # sleep(1.5)
+    sleep(1.5)
     puts "Let me tell you something..."
-    # sleep(1.5)
+    sleep(1.5)
     puts "Here you can see the top movies of all times! ;)"
-    # sleep(2)
+    sleep(2)
     @name = self.class.prompt.ask("May I have your name, please?") do |q|
       q.required(true, "Oops, seems you haven't provided your name. Try again please.")
-      q.validate(/[a-zA-Z]+$/, "Invalid name, please try again.")
+      q.validate(/^[a-zA-Z]+$/, "Invalid name, please try again.")
       q.modify   :capitalize
     end
     puts "Thanks #{@name}. I'd like to ask you some questions, ok?"
   end
 
   def scrape_and_generate_movies
-    # sleep(1.5)
+    sleep(1.5)
     type_of_scrape = self.class.prompt.select(
       "Would you like to see the list of all movies in general or by genre?",
       %w(General Genre))
     puts "Alright! We're going to see the top #{type_of_scrape} movies..."
-    
+    sleep(1.5)
     @genre = nil if type_of_scrape == "General"
-
     type_of_scrape == "Genre" && (
       @genre = self.class.prompt.enum_select(
         "Choose a genre:", WorldTopMovies::Scraper.genres
       )
     )
-    WorldTopMovies::Scraper.new(@genre).make_movies
+    WorldTopMovies::Scraper.make_movies(@genre)
   end 
 
   def print_movies_compact(genre = nil)
-
     if genre == "all"
       movies = WorldTopMovies::Movie.all.sort_by{|m| m.user_rating}.reverse
     else
       movies = genre == nil ? WorldTopMovies::Movie.all_top_general : WorldTopMovies::Movie.all_by_genre(genre)
     end
     puts "\nI'll give you #{movies.size} top movies!"
-    # sleep(1.5)
+    sleep(1.5)
     movies.each_with_index do |m,i|
-      # sleep(0.025)
+      sleep(0.01)
       puts "--------------------------------------------------------------"
       puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
   Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
@@ -77,12 +75,16 @@ class WorldTopMovies::CLI
   end
 
   def select_specific_movie
+    sleep(0.5)
     movie_url = self.class.prompt.enum_select(
       "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(@genre))
     @movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
   end
 
   def scrape_and_print_chosen_movie
+    # These two variables take some time to load, so I call them before they are printed to show everything at the same time
+    description = @movie_instance.description
+    storyline = @movie_instance.storyline
     puts "\n----------------------------------------------"
     puts "         #{@movie_instance.title.upcase} - #{@movie_instance.year}"
     puts "----------------------------------------------"
@@ -94,10 +96,10 @@ class WorldTopMovies::CLI
     puts "Directed by:  #{@movie_instance.director}"
     puts "Total Awards: #{@movie_instance.get_awards_count || "N/A"}"
     puts "\n-----------------Description-------------------"
-    puts "\n#{@movie_instance.description || "N/A"}\n"
-    puts "\nStoryline:\n#{@movie_instance.storyline || "N/A"}\n"
+    puts "\n#{description || "N/A"}\n"
+    puts "\nStoryline:\n#{storyline || "N/A"}\n"
     puts "\n----------------Other Details------------------"
-    puts "\nCountries:  #{@movie_instance.countries_of_origin || "N/A"}"
+    puts "\nCountries:    #{@movie_instance.countries_of_origin || "N/A"}"
     puts "Languages:    #{@movie_instance.languages || "N/A"}"
     puts "IMDB URL:     #{@movie_instance.url}"
     puts "Website:      #{@movie_instance.official_site || "N/A"}"
@@ -106,10 +108,12 @@ class WorldTopMovies::CLI
 
   def bye_propmt
     @status = "exit"
-    puts "Ok #{@name}, hope you enjoyed your time with me!"
+    puts "\nOk #{@name}, hope you enjoyed your time with me!"
   end
 
   def restart
+    puts ""
+    sleep(0.5)
     options = [
       "See more info of a movie from the last list", 
       "Start a new lookup", 

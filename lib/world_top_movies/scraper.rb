@@ -1,5 +1,5 @@
 class WorldTopMovies::Scraper
-  attr_accessor :genre
+  
   @@genres = [
     "Action",
     "Adventure",
@@ -20,32 +20,24 @@ class WorldTopMovies::Scraper
     "War"
   ]
 
-  def initialize(genre = nil)
-    @genre = genre
-  end
-
   def self.genres
     @@genres
   end
 
-  def genre
-    @genre ? @genre.downcase : nil
-  end
-  
-  def get_top_movies_page
-    response = HTTParty.get("https://www.imdb.com/search/title/?title_type=feature&num_votes=200000,&genres=#{self.genre}&sort=user_rating,desc&view=advanced")
+  def self.get_top_movies_page(genre)
+    response = HTTParty.get("https://www.imdb.com/search/title/?title_type=feature&num_votes=200000,&genres=#{genre}&sort=user_rating,desc&view=advanced")
     Nokogiri::HTML(response.body)
   end
 
-  def get_movies
-    self.get_top_movies_page.css("div.lister-item.mode-advanced")
+  def self.get_movies(genre)
+    self.get_top_movies_page(genre).css("div.lister-item.mode-advanced")
   end
 
-  def make_movies
-    self.get_movies.each do |m|
+  def self.make_movies(genre = nil)
+    self.get_movies(genre).each do |m|
       movie = WorldTopMovies::Movie.new_from_page(m)
-      # Fix error from website. Include genre to the genre property if for some reson it's not there
-      self.genre && !movie.genres.include?(self.genre.capitalize) && movie.genres << self.genre.capitalize
+      # Fixed error from website? Include genre to the genre property if for some reson it's not there
+      genre && !movie.genres.include?(genre.downcase.capitalize) && movie.genres << genre.downcase.capitalize
     end
   end
 

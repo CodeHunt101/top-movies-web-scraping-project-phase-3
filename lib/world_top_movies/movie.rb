@@ -71,7 +71,6 @@ class WorldTopMovies::Movie
   def get_awards_count
     target = self.doc.css('li span.ipc-metadata-list-item__list-content-item')[0].text
     @award || (@award = target if target.include?('nomination') || target.include?('win'))
-    # @award if @award.include?('nomination') || @award.include?('win')
   end
 
   def storyline

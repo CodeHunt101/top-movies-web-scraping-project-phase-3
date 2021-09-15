@@ -1,9 +1,8 @@
 class WorldTopMovies::Movie
-  attr_accessor :award, :storyline, :languages, :official_site, :countries_of_origin
+  attr_reader :award, :storyline, :languages, :official_site, :countries_of_origin
+  # perhaps it's better to be accessor
   
   @@all =[]
-
-  @@top_general_all = []
   
   def initialize(attributes)
     attributes.each do |key, value|
@@ -69,25 +68,25 @@ class WorldTopMovies::Movie
   end
   
   def get_awards_count
-    target = self.doc.css('li span.ipc-metadata-list-item__list-content-item')[0].text
+    target = doc.css('li span.ipc-metadata-list-item__list-content-item')[0].text
     @award || (@award = target if target.include?('nomination') || target.include?('win'))
   end
 
   def storyline
     @storyline ||
-    @storyline = self.doc.css(
+    @storyline = doc.css(
       ".Storyline__StorylineWrapper-sc-1b58ttw-0 div.ipc-html-content.ipc-html-content--base div")[0].text
   end
 
   def languages
     @languages ||
-    @languages = self.doc.css(
+    @languages = doc.css(
       'div[data-testid=title-details-section] li[data-testid=title-details-languages]')
       .children[1].children[0].children.map {|l| l.text}.join(" - ")
   end
 
   def official_site
-    target = self.doc.css(
+    target = doc.css(
       'div[data-testid=title-details-section] li[data-testid=title-details-officialsites]')
       .children
     if @official_site
@@ -101,10 +100,12 @@ class WorldTopMovies::Movie
 
   def countries_of_origin
     @countries_of_origin || 
-    @countries_of_origin = self.doc.css('div[data-testid=title-details-section] li[data-testid=title-details-origin]')
+    @countries_of_origin = doc.css('div[data-testid=title-details-section] li[data-testid=title-details-origin]')
     .children[1].children[0].children.map {|c| c.text}.join(" - ")
   end
 
+  # private
+  
   def doc
     @doc || @doc = WorldTopMovies::Scraper.get_movie_details_page(self.url) 
   end

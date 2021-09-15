@@ -1,6 +1,6 @@
 class WorldTopMovies::CLI
   
-  attr_accessor :name, :movie_instance, :genre, :status
+  attr_accessor :username, :movie_instance, :genre, :status
   
   @@prompt = TTY::Prompt.new
   
@@ -9,10 +9,10 @@ class WorldTopMovies::CLI
   end
   
   def run
-      introduce if !@name
-      scrape_and_generate_movies  if @status != "exit"
-      print_movies_compact(@genre) if @status != "exit"
-      restart if @status != "exit"
+      introduce if !self.username
+      scrape_and_generate_movies  if self.status != "exit"
+      print_movies_compact(self.genre) if self.status != "exit"
+      restart if self.status != "exit"
   end
 
   private #: set to private once project finished
@@ -33,12 +33,12 @@ class WorldTopMovies::CLI
     sleep(1.5)
     puts "Here you can see the top movies of all times! ;)"
     sleep(2)
-    @name = self.class.prompt.ask("May I have your name, please?") do |q|
+    self.username = self.class.prompt.ask("May I have your name, please?") do |q|
       q.required(true, "Oops, seems you haven't provided your name. Try again please.")
       q.validate(/^[a-zA-Z]+$/, "Invalid name, please try again.")
       q.modify   :capitalize
     end
-    puts "Thanks #{@name}. I'd like to ask you some questions, ok?"
+    puts "Thanks #{self.username}. I'd like to ask you some questions, ok?"
   end
 
   def scrape_and_generate_movies
@@ -48,13 +48,13 @@ class WorldTopMovies::CLI
       %w(General Genre))
     puts "Alright! We're going to see the top #{type_of_scrape} movies..."
     sleep(1.5)
-    @genre = nil if type_of_scrape == "General"
+    self.genre = nil if type_of_scrape == "General"
     type_of_scrape == "Genre" && (
-      @genre = self.class.prompt.enum_select(
+      self.genre = self.class.prompt.enum_select(
         "Choose a genre:", WorldTopMovies::Scraper.genres
       )
     )
-    WorldTopMovies::Scraper.make_movies(@genre)
+    WorldTopMovies::Scraper.make_movies(self.genre)
   end 
 
   def print_movies_compact(genre = nil)
@@ -77,45 +77,45 @@ class WorldTopMovies::CLI
   def select_specific_movie
     sleep(0.5)
     movie_url = self.class.prompt.enum_select(
-      "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(@genre))
-    @movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
+      "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre))
+    self.movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
   end
 
   def scrape_and_print_chosen_movie
     # These two variables take some time to load, so I call them before they are printed to show everything at the same time
-    description = @movie_instance.description
-    storyline = @movie_instance.storyline
+    description = self.movie_instance.description
+    storyline = self.movie_instance.storyline
     puts "\n----------------------------------------------"
-    puts "         #{@movie_instance.title.upcase} - #{@movie_instance.year}"
+    puts "         #{self.movie_instance.title.upcase} - #{self.movie_instance.year}"
     puts "----------------------------------------------"
-    puts "\nGenres:       #{@movie_instance.genres.join(" - ") || "N/A"}"
-    puts "Duration:     #{@movie_instance.duration}"
-    puts "Stars:        #{@movie_instance.stars.join(" - ")}"
-    puts "Rating:       #{@movie_instance.user_rating} from #{@movie_instance.votes} votes"
-    puts "Metascore:    #{@movie_instance.metascore || "N/A"}"
-    puts "Directed by:  #{@movie_instance.director}"
-    puts "Total Awards: #{@movie_instance.get_awards_count || "N/A"}"
+    puts "\nGenres:       #{self.movie_instance.genres.join(" - ") || "N/A"}"
+    puts "Duration:     #{self.movie_instance.duration}"
+    puts "Stars:        #{self.movie_instance.stars.join(" - ")}"
+    puts "Rating:       #{self.movie_instance.user_rating} from #{self.movie_instance.votes} votes"
+    puts "Metascore:    #{self.movie_instance.metascore || "N/A"}"
+    puts "Directed by:  #{self.movie_instance.director}"
+    puts "Total Awards: #{self.movie_instance.get_awards_count || "N/A"}"
     puts "\n-----------------Description-------------------"
     puts "\n#{description || "N/A"}\n"
     puts "\nStoryline:\n#{storyline || "N/A"}\n"
     puts "\n----------------Other Details------------------"
-    puts "\nCountries:    #{@movie_instance.countries_of_origin || "N/A"}"
-    puts "Languages:    #{@movie_instance.languages || "N/A"}"
-    puts "IMDB URL:     #{@movie_instance.url}"
-    puts "Website:      #{@movie_instance.official_site || "N/A"}"
-    puts "\nThis movie has a gross revenue of #{@movie_instance.gross_revenue}"
+    puts "\nCountries:    #{self.movie_instance.countries_of_origin || "N/A"}"
+    puts "Languages:    #{self.movie_instance.languages || "N/A"}"
+    puts "IMDB URL:     #{self.movie_instance.url}"
+    puts "Website:      #{self.movie_instance.official_site || "N/A"}"
+    puts "\nThis movie has a gross revenue of #{self.movie_instance.gross_revenue}"
   end
 
-  def bye_propmt
-    @status = "exit"
-    puts "\nOk #{@name}, hope you enjoyed your time with me!"
+  def close_app
+    self.status = "exit"
+    puts "\nOk #{self.username}, hope you enjoyed your time with me!"
   end
 
   def restart
     puts ""
     sleep(0.5)
     options = [
-      "See more info of a movie from the last list", 
+      "See more info of a movie from the last selected genre or general list", 
       "Start a new lookup", 
       "Print all the movies displayed so far and exit", 
       "Exit" ]
@@ -132,9 +132,11 @@ class WorldTopMovies::CLI
       run
     elsif next_action == options[2]
       print_movies_compact("all")
-      bye_propmt
+      restart
+      # close_app
+      # Check whether it's better call bye prompt or restart
     else
-      bye_propmt
+      close_app
     end
   end
   

@@ -1,4 +1,5 @@
 class WorldTopMovies::Movie
+
   attr_reader :award, :storyline, :languages, :official_site, :countries_of_origin
   # perhaps it's better to be accessor
   

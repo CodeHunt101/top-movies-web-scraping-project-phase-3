@@ -9,5 +9,3 @@ WorldTopMovies::FavouriteMovie.delete_all
 # binding.pry
   u1.favourite_movies << m1
 end
-
-binding.pry

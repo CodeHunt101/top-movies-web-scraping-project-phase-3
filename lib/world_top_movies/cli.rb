@@ -1,6 +1,7 @@
+
 class WorldTopMovies::CLI
   
-  attr_accessor :username, :movie_instance, :genre, :status
+  attr_accessor :user, :movie_instance, :genre, :status
   
   @@prompt = TTY::Prompt.new
   
@@ -9,13 +10,13 @@ class WorldTopMovies::CLI
   end
   
   def run
-      introduce if !self.username
+      introduce if !self.user
       scrape_and_generate_movies  if self.status != "exit"
       print_movies_compact(self.genre) if self.status != "exit"
       restart if self.status != "exit"
   end
 
-  private #: set to private once project finished
+  # private #: set to private once project finished
 
   def introduce
     artii = Artii::Base.new({})
@@ -33,12 +34,13 @@ class WorldTopMovies::CLI
     sleep(1.5)
     puts "Here you can see the top movies of all times! ;)"
     sleep(2)
-    self.username = self.class.prompt.ask("May I have your name, please?") do |q|
-      q.required(true, "Oops, seems you haven't provided your name. Try again please.")
-      q.validate(/^[a-zA-Z]+$/, "Invalid name, please try again.")
-      q.modify   :capitalize
+    username = self.class.prompt.ask("Please enter your username to log in or sign up") do |q|
+      q.required(true, "Oops, seems you haven't provided your username! Try again please.")
+      q.validate(/^[a-zA-Z0-9._-]+$/, "Oops, seems like that username is invalid. Only alphanumerical characters plus . - _ are allowed. Try again please.")
+      q.modify   :down
     end
-    puts "Thanks #{self.username}. I'd like to ask you some questions, ok?"
+    self.user = WorldTopMovies::User.find_or_create_by(username: username)
+    puts "Thanks #{username}. I'd like to ask you some questions, ok?"
   end
 
   def scrape_and_generate_movies
@@ -104,11 +106,13 @@ class WorldTopMovies::CLI
     puts "IMDB URL:     #{self.movie_instance.url}"
     puts "Website:      #{self.movie_instance.official_site || "N/A"}"
     puts "\nThis movie has a gross revenue of #{self.movie_instance.gross_revenue}"
+    
+    add_favourite_movie
   end
 
   def close_app
     self.status = "exit"
-    puts "\nOk #{self.username}, hope you enjoyed your time with me!"
+    puts "\nOk #{self.user.username}, hope you enjoyed your time with me!"
   end
 
   def restart
@@ -116,21 +120,24 @@ class WorldTopMovies::CLI
     sleep(0.5)
     options = [
       "See more info of a movie from the last selected genre or general list", 
+      "Add favourite movies from the last selected genre or general list",
       "Start a new lookup", 
-      "Print all the movies displayed so far and exit", 
+      "Print all the movies displayed so far", 
       "Exit" ]
 
     next_action = self.class.prompt.select(
       "What would you like to do now?", options
     )
-    
     if next_action == options[0]
       select_specific_movie
       scrape_and_print_chosen_movie
       restart
     elsif next_action == options[1]
-      run
+      add_favourite_movies
+      restart
     elsif next_action == options[2]
+      run
+    elsif next_action == options[3]
       print_movies_compact("all")
       restart
       # close_app
@@ -140,4 +147,29 @@ class WorldTopMovies::CLI
     end
   end
   
+  def favourite_movies
+    # What to do if empty?????
+    self.user.favourite_movies
+  end
+
+  def add_favourite_movies
+    movie_urls = self.class.prompt.multi_select(
+      "\nSelect movies (ordered alphabetically): ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre))
+    movie_urls.each do |movie_url|
+      if self.user.favourite_movies.none?{|m| m.url == movie_url}
+        fav_movie = WorldTopMovies::Movie.find_by_url(movie_url)
+        self.user.favourite_movies << WorldTopMovies::FavouriteMovie.find_or_create_by(title: fav_movie.title, url: fav_movie.url)
+      end
+    end
+    # What if movie_url is empty? user didn't select, message to display
+    puts "\nThe movies has been added to your favourites!"
+  end
+
+  def add_favourite_movie
+    add_to_favourite = self.class.prompt.yes?("\nWould you like to add this movie to your favourites?")
+    if add_to_favourite && self.user.favourite_movies.none?{|m| m.url == self.movie_instance.url}
+      self.user.favourite_movies << WorldTopMovies::FavouriteMovie.find_or_create_by(title: self.movie_instance.title, url: self.movie_instance.url)
+      puts "#{self.movie_instance.title} has been added to your favourite movies!"
+    end
+  end
 end

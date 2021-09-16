@@ -1,11 +1,11 @@
-require 'pry'
-require 'nokogiri'
-require 'open-uri'
-require 'HTTParty'
-require 'colorize'
-require 'artii'
-require "tty-prompt"
-require "sinatra/activerecord"
+# require 'pry'
+# require 'nokogiri'
+# require 'open-uri'
+# require 'HTTParty'
+# require 'colorize'
+# require 'artii'
+# require "tty-prompt"
+# require "sinatra/activerecord"
 
 # require_relative '../lib/world_top_movies/cli'
 # require_relative '../lib/world_top_movies/scraper'

@@ -1,4 +1,4 @@
-require_relative './lib/world_top_movies'
+require_relative 'config/environment'
 require 'sinatra/activerecord/rake'
 
 desc 'starts a console'

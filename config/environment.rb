@@ -17,11 +17,11 @@
 # JOKES
 require 'bundler'
 Bundler.require
-
+require_all 'lib'
 # From labs
 # ENV['SINATRA_ENV'] ||= 'development'
 # ActiveRecord::Base.establish_connection(ENV['SINATRA_ENV'].to_sym)
 
-ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: 'db/development.db')
+# ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: 'db/development.db')
+ActiveRecord::Base.establish_connection(:development)
 ActiveRecord::Base.logger = nil
-require_all 'lib'

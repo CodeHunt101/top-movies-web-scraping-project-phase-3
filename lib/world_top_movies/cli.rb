@@ -141,27 +141,28 @@ class WorldTopMovies::CLI
       print_movies_compact("all")
       restart
       # close_app
-      # Check whether it's better call bye prompt or restart
+      # TODO: Check whether it's better call bye prompt or restart
     else
       close_app
     end
   end
   
   def favourite_movies
-    # What to do if empty?????
+    # TODO: What to do if empty?????
     self.user.favourite_movies
   end
 
   def add_favourite_movies
     movie_urls = self.class.prompt.multi_select(
-      "\nSelect movies (ordered alphabetically): ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre))
+      # TODO: Maybe better to order alphabetically
+      "\nSelect movies: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre))
     movie_urls.each do |movie_url|
       if self.user.favourite_movies.none?{|m| m.url == movie_url}
         fav_movie = WorldTopMovies::Movie.find_by_url(movie_url)
         self.user.favourite_movies << WorldTopMovies::FavouriteMovie.find_or_create_by(title: fav_movie.title, url: fav_movie.url)
       end
     end
-    # What if movie_url is empty? user didn't select, message to display
+    # TODO: What if movie_url is empty? user didn't select, message to display
     puts "\nThe movies has been added to your favourites!"
   end
 

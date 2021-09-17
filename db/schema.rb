@@ -12,7 +12,7 @@
 
 ActiveRecord::Schema.define(version: 2021_09_15_070809) do
 
-  create_table "favourite_movies", force: :cascade do |t|
+  create_table "movies", force: :cascade do |t|
     t.string "title"
     t.string "url"
     t.datetime "created_at", null: false
@@ -21,7 +21,7 @@ ActiveRecord::Schema.define(version: 2021_09_15_070809) do
 
   create_table "user_movies", force: :cascade do |t|
     t.integer "user_id"
-    t.string "favourite_movie_id"
+    t.string "movie_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

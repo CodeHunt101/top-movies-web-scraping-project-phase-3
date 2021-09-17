@@ -1,4 +1,4 @@
-class WorldTopMovies::UserMovie < ActiveRecord::Base
-  belongs_to :favourite_movie
+class WorldTopMovies::DB::UserMovie < ActiveRecord::Base
+  belongs_to :movie
   belongs_to :user
 end

@@ -1,4 +1,4 @@
-class WorldTopMovies::FavouriteMovie < ActiveRecord::Base
+class WorldTopMovies::DB::Movie < ActiveRecord::Base
   has_many :user_movies
   has_many :users, through: :user_movies
 end

@@ -11,7 +11,6 @@ class WorldTopMovies::CLI
   def run
       introduce if !self.user
       run_favourite_movies_section if self.status != "exit"
-      # print_favourite_movies if self.status != "exit"
       scrape_and_generate_movies  if self.status != "exit"
       print_movies_compact(self.genre) if self.status != "exit"
       select_next_action if self.status != "exit"
@@ -41,7 +40,7 @@ class WorldTopMovies::CLI
       q.validate(/^[a-zA-Z0-9._-]+$/, "Oops, seems like that username is invalid. Only alphanumerical characters plus . - _ are allowed. Try again please.")
       q.modify   :down
     end
-    self.user = WorldTopMovies::User.find_or_create_by(username: username)
+    self.user = WorldTopMovies::DB::User.find_or_create_by(username: username)
     puts "Thanks #{username}. I'd like to ask you some questions, ok?"
   end
 
@@ -166,9 +165,9 @@ class WorldTopMovies::CLI
       # TODO: Maybe better to order alphabetically
       "\nSelect movies: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre))
     movie_urls.each do |movie_url|
-      if self.user.favourite_movies.none?{|m| m.url == movie_url}
+      if self.user.movies.none?{|m| m.url == movie_url}
         fav_movie = WorldTopMovies::Movie.find_by_url(movie_url)
-        self.user.favourite_movies << WorldTopMovies::FavouriteMovie.find_or_create_by(title: fav_movie.title, url: fav_movie.url)
+        self.user.movies << WorldTopMovies::DB::Movie.find_or_create_by(title: fav_movie.title, url: fav_movie.url)
       end
     end
     # TODO: What if movie_url is empty? user didn't select, message to display
@@ -178,22 +177,21 @@ class WorldTopMovies::CLI
   def add_favourite_movie
     # Finds or creates a new Favourite movie instance and adds it to the database
     add_to_favourite = self.class.prompt.yes?("\nWould you like to add this movie to your favourites?")
-    if add_to_favourite && self.user.favourite_movies.none?{|m| m.url == self.movie_instance.url}
-      self.user.favourite_movies << WorldTopMovies::FavouriteMovie.find_or_create_by(title: self.movie_instance.title, url: self.movie_instance.url)
+    if add_to_favourite && self.user.movies.none?{|m| m.url == self.movie_instance.url}
+      self.user.movies << WorldTopMovies::DB::Movie.find_or_create_by(title: self.movie_instance.title, url: self.movie_instance.url)
       puts "#{self.movie_instance.title} has been added to your favourite movies!"
     end
   end
 
   def delete_favourite_movies
-    #TODO test if destroy also deletes the record from other users
-    delete_favourites = self.class.prompt.yes?("\nWould you like to delete any of your favourite movies?")
+    !self.user.movies.empty? && delete_favourites = self.class.prompt.yes?("\nWould you like to delete any of your favourite movies?")
     if delete_favourites
       movie_urls = self.class.prompt.multi_select(
         "\nSelect movies: ", self.user.favourite_movie_titles)
       movie_urls.each do |movie_url|
-        WorldTopMovies::UserMovie.joins(:user, :favourite_movie)
-        .where("favourite_movies.url" => movie_url, "users.username" => self.user.username).destroy_all
-        self.user.favourite_movies.delete(self.user.find_movie_from_url(movie_url))
+        WorldTopMovies::DB::UserMovie.joins(:user, :movie)
+        .where("movies.url" => movie_url, "users.username" => self.user.username).destroy_all
+        self.user.movies.delete(self.user.find_movie_from_url(movie_url))
       end
     end
   end
@@ -202,8 +200,4 @@ class WorldTopMovies::CLI
     favourite_movies = self.class.prompt.yes?("\nWould you like to see all your favourite movies?")
     favourite_movies && self.user.print_all_favourite_movie_titles && delete_favourite_movies
   end
-
-  # def run_favourite_movies_section
-    
-  # end
 end

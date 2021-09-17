@@ -1,11 +1,11 @@
 class WorldTopMovies::Movie
 
   attr_reader :award, :storyline, :languages, :official_site, :countries_of_origin
-  # perhaps it's better to be accessor
   
   @@all =[]
   
   def initialize(attributes)
+    #Utilises metaprogramming to create new instances
     attributes.each do |key, value|
       self.class.attr_accessor(key)
       self.send(("#{key}="), value)
@@ -15,6 +15,7 @@ class WorldTopMovies::Movie
   end
 
   def self.new_from_page(m)
+    # Creates new instance with the attributes from general page
     self.new({
       title: m.css("h3 a").text,
       year: m.css("h3 span.lister-item-year").text[1...-1].scan(/[0-9]/).join(),
@@ -35,13 +36,15 @@ class WorldTopMovies::Movie
     @@all
   end
 
-  def self.all_by_genre(genre)
-    return self.all_top_general if !genre
-    self.all.select{|m| m.genres.include?(genre)}
+  def self.all_top_general
+    # Filters out the movies with rating > 8
+    self.all.select{|m| m.user_rating >= 8.4}.sort_by{|m| m.user_rating}.reverse
   end
 
-  def self.all_top_general
-    self.all.select{|m| m.user_rating >= 8.4}.sort_by{|m| m.user_rating}.reverse
+  def self.all_by_genre(genre)
+    # Filters all movies from a given genre, if no genre, return general movies 
+    return self.all_top_general if !genre
+    self.all.select{|m| m.genres.include?(genre)}
   end
 
   def self.reset_all
@@ -49,6 +52,7 @@ class WorldTopMovies::Movie
   end
 
   def self.all_titles_and_links_hash
+    # returns a hash with key=title, value=url of all movie instances
     result = {}
     self.all.each do |m|
       result[m.title] = m.url
@@ -57,6 +61,7 @@ class WorldTopMovies::Movie
   end
 
   def self.all_titles_and_links_hash_by_genre(genre)
+    # returns a hash with key=title, value=url of all movie instances from given genre
     result = {}
     self.all_by_genre(genre).each do |m|
       result[m.title] = m.url

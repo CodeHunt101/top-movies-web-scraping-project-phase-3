@@ -63,9 +63,15 @@ class WorldTopMovies::Movie
   def self.all_titles_and_links_hash_by_genre(genre)
     # returns a hash with key=title, value=url of all movie instances from given genre
     result = {}
+    counter = 1
     self.all_by_genre(genre).each do |m|
-      result[m.title] = m.url
+      if result.keys.none?{|key| key == m.title}
+        result[m.title] = m.url
+      else
+        result[m.title+"(#{counter +1})"] = m.url
+      end
     end
+    
     result
   end
 
@@ -117,24 +123,24 @@ class WorldTopMovies::Movie
     description = self.description
     storyline = self.storyline
     puts "\n----------------------------------------------"
-    puts "         #{self.title.upcase} - #{self.year}"
+    puts "         #{self.title.upcase} - #{self.year}         ".colorize(:background => :green, :color => :black).bold
     puts "----------------------------------------------"
-    puts "\nGenres:       #{self.genres.join(" - ") || "N/A"}"
-    puts "Duration:     #{self.duration}"
-    puts "Stars:        #{self.stars.join(" - ")}"
-    puts "Rating:       #{self.user_rating} from #{self.votes} votes"
-    puts "Metascore:    #{self.metascore || "N/A"}"
-    puts "Directed by:  #{self.director}"
-    puts "Total Awards: #{self.get_awards_count || "N/A"}"
-    puts "\n-----------------Description-------------------"
-    puts "\n#{description || "N/A"}\n"
-    puts "\nStoryline:\n#{storyline || "N/A"}\n"
-    puts "\n----------------Other Details------------------"
-    puts "\nCountries:    #{self.countries_of_origin || "N/A"}"
-    puts "Languages:    #{self.languages || "N/A"}"
-    puts "IMDB URL:     #{self.url}"
-    puts "Website:      #{self.official_site || "N/A"}"
-    puts "\nThis movie has a gross revenue of #{self.gross_revenue}"
+    puts "\n#{"Genres:".bold}       #{self.genres.join(" - ").green.italic || "N/A"}"
+    puts "#{"Duration:".bold}     #{self.duration.green.italic}"
+    puts "#{"Stars:".bold}        #{self.stars.join(" - ").green.italic}"
+    puts "#{"Rating:".bold}       #{"#{self.user_rating} from #{self.votes} votes".green.italic}"
+    puts "#{"Metascore:".bold}    #{self.metascore.to_s.green.italic || "N/A"}"
+    puts "#{"Directed by:".bold}  #{self.director.green.italic}"
+    puts "#{"Total Awards:".bold} #{self.get_awards_count.green.italic || "N/A"}"
+    puts "\n-----------------#{"Description".bold}-------------------"
+    puts "\n#{description.green.italic || "N/A"}\n"
+    puts "\n#{"Storyline:".bold}\n\n#{storyline.green.italic || "N/A"}\n"
+    puts "\n----------------#{"Other Details".bold}------------------"
+    puts "\n#{"Countries:".bold}    #{self.countries_of_origin.green.italic || "N/A"}"
+    puts "#{"Languages:".bold}    #{self.languages.green.italic || "N/A"}"
+    puts "#{"IMDB URL:".bold}     #{self.url.green.italic}."
+    puts "#{"Website:".bold}      #{self.official_site.green.italic || "N/A"}"
+    puts "\nThis movie has a gross revenue of #{self.gross_revenue}".green.bold
   end
 
   def self.scrape_and_print_movies_compact(genre = nil)
@@ -145,7 +151,7 @@ class WorldTopMovies::Movie
     else
       movies = genre == nil ? self.all_top_general : self.all_by_genre(genre)
     end
-    puts "\nI'll give you #{movies.size} top movies!"
+    puts "I'll give you #{movies.size} top movies!"
     sleep(1.5)
     movies.each_with_index do |m,i|
       sleep(0.01)
@@ -154,6 +160,10 @@ class WorldTopMovies::Movie
   Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
   Year: #{m.year.colorize(:color => :red)} \n"
     end
+  end
+
+  def self.delete_movie_instance_from_user(user, movie_url)
+    user.movies.delete(user.find_movie_from_url(movie_url))
   end
 
   # private

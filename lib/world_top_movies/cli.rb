@@ -40,21 +40,24 @@ class WorldTopMovies::CLI
       q.modify   :down
     end
     self.user = WorldTopMovies::DB::User.find_or_create_by(username: username)
+    sleep(0.5)
     puts "Thanks #{username}. I'd like to ask you some questions, ok?"
   end
 
   def scrape_and_print_movies
     # Asks the user which genre they want to see, then scrapres and generates the instances
     sleep(1.5)
+    puts ""
     type_of_scrape = self.class.prompt.select(
       "Would you like to see the list of all movies in general or by genre?",
       %w(General Genre))
-    puts "Alright! We're going to see the top #{type_of_scrape} movies..."
+    puts "\nAlright! We're going to see the top #{type_of_scrape} movies..."
     sleep(1.5)
+    puts ""
     self.genre = nil if type_of_scrape == "General"
     type_of_scrape == "Genre" && (
       self.genre = self.class.prompt.enum_select(
-        "Choose a genre:", WorldTopMovies::Scraper.genres
+        "Choose a genre:\n", WorldTopMovies::Scraper.genres
       )
     )
     WorldTopMovies::Movie.scrape_and_print_movies_compact(self.genre)
@@ -63,6 +66,7 @@ class WorldTopMovies::CLI
   def select_and_print_specific_movie
     # Asks user to select a movie from print_movies_compact
     sleep(0.5)
+    puts ""
     movie_url = self.class.prompt.enum_select(
       "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre))
     self.movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
@@ -112,45 +116,57 @@ class WorldTopMovies::CLI
   
   def add_favourite_movies
     # Finds or creates a new Favourite movie instances and adds them to the database
+    sleep(0.5)
     movie_urls = self.class.prompt.multi_select(
       # TODO: Maybe better to order alphabetically
-      "\nSelect movies: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre))
-    movie_urls.each do |movie_url|
-      if self.user.movies.none?{|m| m.url == movie_url}
-        fav_movie = WorldTopMovies::Movie.find_by_url(movie_url)
-        self.user.movies << WorldTopMovies::DB::Movie.find_or_create_by(title: fav_movie.title, url: fav_movie.url)
-      end
+      "\nSelect movies: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre), enum: ")")
+    WorldTopMovies::DB::Movie.add_movies(self.user,movie_urls)
+    if movie_urls.size > 0
+      puts("\nThe movie(s) have been added to your favourites!")
+    else
+      puts("\nNo movies were selected.")
     end
-    puts "\nThe movie(s) have been added to your favourites!"
   end
 
   def add_favourite_movie
     # Finds or creates a new Favourite movie instance and adds it to the database
+    sleep(0.5)
     add_to_favourite = self.class.prompt.yes?("\nWould you like to add this movie to your favourites?")
     if add_to_favourite && self.user.movies.none?{|m| m.url == self.movie_instance.url}
-      self.user.movies << WorldTopMovies::DB::Movie.find_or_create_by(title: self.movie_instance.title, url: self.movie_instance.url)
-      puts "#{self.movie_instance.title} has been added to your favourite movies!"
+      WorldTopMovies::DB::Movie.add_movie(self.user, self.movie_instance.url)
+      puts "\n#{self.movie_instance.title} has been added to your favourite movies!"
     else 
       add_to_favourite && puts("Oops! #{self.movie_instance.title} is already in your favourites!")
     end
   end
 
   def delete_favourite_movies
+    sleep(0.5)
     !self.user.movies.empty? && delete_favourites = self.class.prompt.yes?("\nWould you like to delete any of your favourite movies?")
     if delete_favourites
       movie_urls = self.class.prompt.multi_select(
-        "\nSelect movies: ", self.user.favourite_movie_titles)
+        "\nSelect movies: ", self.user.favourite_movie_titles, enum: ")")
       movie_urls.each do |movie_url|
-        WorldTopMovies::DB::UserMovie.joins(:user, :movie)
-        .where("movies.url" => movie_url, "users.username" => self.user.username).destroy_all
-        self.user.movies.delete(self.user.find_movie_from_url(movie_url))
+        WorldTopMovies::DB::UserMovie.delete_movie_record_from_user(self.user, movie_url)
+        WorldTopMovies::Movie.delete_movie_instance_from_user(self.user, movie_url)
       end
-      puts "The movie(s) have been successfully deleted"
+      if movie_urls.size > 0
+        puts("\nThe movie(s) have been successfully deleted")
+      else
+        puts("\nNo movies were selected.")
+      end
     end
   end
 
   def run_favourite_movies_section
+    sleep(0.5)
     favourite_movies = self.class.prompt.yes?("\nWould you like to see all your favourite movies?")
-    favourite_movies && self.user.print_all_favourite_movie_titles && delete_favourite_movies
+    if favourite_movies
+      puts("\nOk! Your favourite movies are:\n\n")
+      sleep(1.5)
+      self.user.print_all_favourite_movie_titles
+      sleep(1.5)
+      delete_favourite_movies
+    end
   end
 end

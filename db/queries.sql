@@ -6,9 +6,6 @@ INNER JOIN users
 ON user_movies.user_id = users.id;
 
 
-
-
-
 SELECT user_movies.* 
 FROM user_movies 
 INNER JOIN users

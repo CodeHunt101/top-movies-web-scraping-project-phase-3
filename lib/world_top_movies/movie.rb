@@ -110,6 +110,52 @@ class WorldTopMovies::Movie
     .children[1].children[0].children.map {|c| c.text}.join(" - ")
   end
 
+  def scrape_and_print_movie
+    # Prints detailed info of a selected movie from select_specific_movie, after scraping it.
+    
+    # These two variables take some time to load, so I call them before they are printed to show everything at the same time (Confirm!!!!)
+    description = self.description
+    storyline = self.storyline
+    puts "\n----------------------------------------------"
+    puts "         #{self.title.upcase} - #{self.year}"
+    puts "----------------------------------------------"
+    puts "\nGenres:       #{self.genres.join(" - ") || "N/A"}"
+    puts "Duration:     #{self.duration}"
+    puts "Stars:        #{self.stars.join(" - ")}"
+    puts "Rating:       #{self.user_rating} from #{self.votes} votes"
+    puts "Metascore:    #{self.metascore || "N/A"}"
+    puts "Directed by:  #{self.director}"
+    puts "Total Awards: #{self.get_awards_count || "N/A"}"
+    puts "\n-----------------Description-------------------"
+    puts "\n#{description || "N/A"}\n"
+    puts "\nStoryline:\n#{storyline || "N/A"}\n"
+    puts "\n----------------Other Details------------------"
+    puts "\nCountries:    #{self.countries_of_origin || "N/A"}"
+    puts "Languages:    #{self.languages || "N/A"}"
+    puts "IMDB URL:     #{self.url}"
+    puts "Website:      #{self.official_site || "N/A"}"
+    puts "\nThis movie has a gross revenue of #{self.gross_revenue}"
+  end
+
+  def self.scrape_and_print_movies_compact(genre = nil)
+    # Looks for the movies to print depending on the arg and prints title, rating, year
+    WorldTopMovies::Scraper.make_movies(genre)
+    if genre == "all"
+      movies = self.all.sort_by{|m| m.user_rating}.reverse
+    else
+      movies = genre == nil ? self.all_top_general : self.all_by_genre(genre)
+    end
+    puts "\nI'll give you #{movies.size} top movies!"
+    sleep(1.5)
+    movies.each_with_index do |m,i|
+      sleep(0.01)
+      puts "--------------------------------------------------------------"
+      puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
+  Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
+  Year: #{m.year.colorize(:color => :red)} \n"
+    end
+  end
+
   # private
   
   def doc

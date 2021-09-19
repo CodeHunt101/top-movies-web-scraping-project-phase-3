@@ -25,35 +25,35 @@ class WorldTopMovies::CLI
     puts '-----------------------------------------------------------------------------------'
     puts "    By Harold Torres Marino | p: +61 401 927 123 | e: haroldtm55@gmail.com".colorize(:mode=>:italic)
     puts '-----------------------------------------------------------------------------------'
-    sleep(0.5)
+    # sleep(0.5)
     puts "Hey! Do you like movies??!"
-    sleep(1.5)
+    # sleep(1.5)
     puts "I'm sure you do!"
-    sleep(1.5)
+    # sleep(1.5)
     puts "Let me tell you something..."
-    sleep(1.5)
+    # sleep(1.5)
     puts "Here you can see the top movies of all times! ;)"
-    sleep(2)
+    # sleep(2)
     username = self.class.prompt.ask("Please enter your username to log in or sign up") do |q|
       q.required(true, "Oops, seems you haven't provided your username! Try again please.")
       q.validate(/^[a-zA-Z0-9._-]+$/, "Oops, seems like that username is invalid. Only alphanumerical characters plus . - _ are allowed. Try again please.")
       q.modify   :down
     end
     self.user = WorldTopMovies::DB::User.find_or_create_by(username: username)
-    sleep(0.5)
+    # sleep(0.5)
     puts "Thanks #{username}. I'd like to ask you some questions, ok?"
   end
 
   def scrape_and_print_movies
     # Asks the user which genre they want to see, then scrapres and generates the instances
-    sleep(1.5)
+    # sleep(1.5)
     puts ""
     type_of_scrape = self.class.prompt.select(
       "Would you like to see the list of all movies in general or by genre?",
       %w(General Genre))
     puts "\nAlright! We're going to see the top #{type_of_scrape} movies..."
-    sleep(1.5)
     puts ""
+    # sleep(1.5)
     self.genre = nil if type_of_scrape == "General"
     type_of_scrape == "Genre" && (
       self.genre = self.class.prompt.enum_select(
@@ -65,7 +65,7 @@ class WorldTopMovies::CLI
 
   def select_and_print_specific_movie
     # Asks user to select a movie from print_movies_compact
-    sleep(0.5)
+    # sleep(0.5)
     puts ""
     movie_url = self.class.prompt.enum_select(
       "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre))
@@ -81,7 +81,7 @@ class WorldTopMovies::CLI
   def select_next_action
     # Ask user to select a new action and re run the app from the chosen action
     puts ""
-    sleep(0.5)
+    # sleep(0.5)
     options = [
       "See more info of a movie from the last selected genre or general list", 
       "Add favourite movies from the last selected genre or general list",
@@ -116,9 +116,8 @@ class WorldTopMovies::CLI
   
   def add_favourite_movies
     # Finds or creates a new Favourite movie instances and adds them to the database
-    sleep(0.5)
+    # sleep(0.5)
     movie_urls = self.class.prompt.multi_select(
-      # TODO: Maybe better to order alphabetically
       "\nSelect movies: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre), enum: ")")
     WorldTopMovies::DB::Movie.add_movies(self.user,movie_urls)
     if movie_urls.size > 0
@@ -130,7 +129,7 @@ class WorldTopMovies::CLI
 
   def add_favourite_movie
     # Finds or creates a new Favourite movie instance and adds it to the database
-    sleep(0.5)
+    # sleep(0.5)
     add_to_favourite = self.class.prompt.yes?("\nWould you like to add this movie to your favourites?")
     if add_to_favourite && self.user.movies.none?{|m| m.url == self.movie_instance.url}
       WorldTopMovies::DB::Movie.add_movie(self.user, self.movie_instance.url)
@@ -141,7 +140,7 @@ class WorldTopMovies::CLI
   end
 
   def delete_favourite_movies
-    sleep(0.5)
+    # sleep(0.5)
     !self.user.movies.empty? && delete_favourites = self.class.prompt.yes?("\nWould you like to delete any of your favourite movies?")
     if delete_favourites
       movie_urls = self.class.prompt.multi_select(
@@ -159,13 +158,12 @@ class WorldTopMovies::CLI
   end
 
   def run_favourite_movies_section
-    sleep(0.5)
+    # sleep(0.5)
     favourite_movies = self.class.prompt.yes?("\nWould you like to see all your favourite movies?")
+    # sleep(1)
     if favourite_movies
-      puts("\nOk! Your favourite movies are:\n\n")
-      sleep(1.5)
       self.user.print_all_favourite_movie_titles
-      sleep(1.5)
+      # sleep(1.5)
       delete_favourite_movies
     end
   end

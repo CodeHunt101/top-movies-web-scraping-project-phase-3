@@ -1,6 +1,6 @@
 class WorldTopMovies::Movie
 
-  attr_reader :award, :storyline, :languages, :official_site, :countries_of_origin
+  attr_reader :award, :storyline, :languages, :official_site, :countries_of_orig
   
   @@all =[]
   
@@ -78,6 +78,33 @@ class WorldTopMovies::Movie
   def self.find_by_url(url)
     self.all.find {|m| m.url == url}
   end
+
+  def self.delete_movie_instance_from_user(user, movie_url)
+    user.movies.delete(user.find_movie_from_url(movie_url))
+  end
+
+  def self.scrape_and_print_movies_compact(genre = nil)
+    # Looks for the movies to print depending on the arg and prints title, rating, year
+    WorldTopMovies::Scraper.make_movies(genre)
+    if genre == "all"
+      movies = self.all.sort_by{|m| m.user_rating}.reverse
+    else
+      movies = genre == nil ? self.all_top_general : self.all_by_genre(genre)
+    end
+    puts "I'll give you #{movies.size} top movies!"
+    sleep(1.5)
+    movies.each_with_index do |movie,index|
+      sleep(0.01)
+      self.print_movie_compact(movie, index)
+    end
+  end
+
+  def self.print_movie_compact(movie, index)
+    puts "--------------------------------------------------------------"
+    puts "\n#{index+1}. #{movie.title.colorize(:color => :green, :mode=> :bold)}, \
+Rating: #{movie.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)}, \
+Year: #{movie.year.colorize(:color => :red)} \n"
+  end
   
   def get_awards_count
     target = doc.css('li span.ipc-metadata-list-item__list-content-item')[0].text
@@ -141,29 +168,6 @@ class WorldTopMovies::Movie
     puts "#{"IMDB URL:".bold}     #{self.url.green.italic}."
     puts "#{"Website:".bold}      #{self.official_site.green.italic || "N/A"}"
     puts "\nThis movie has a gross revenue of #{self.gross_revenue}".green.bold
-  end
-
-  def self.scrape_and_print_movies_compact(genre = nil)
-    # Looks for the movies to print depending on the arg and prints title, rating, year
-    WorldTopMovies::Scraper.make_movies(genre)
-    if genre == "all"
-      movies = self.all.sort_by{|m| m.user_rating}.reverse
-    else
-      movies = genre == nil ? self.all_top_general : self.all_by_genre(genre)
-    end
-    puts "I'll give you #{movies.size} top movies!"
-    sleep(1.5)
-    movies.each_with_index do |m,i|
-      sleep(0.01)
-      puts "--------------------------------------------------------------"
-      puts "\n#{i+1}. #{m.title.colorize(:color => :green, :mode=> :bold)},\
-  Rating: #{m.user_rating.to_s.colorize(:color => :light_blue, :mode=> :bold)},\
-  Year: #{m.year.colorize(:color => :red)} \n"
-    end
-  end
-
-  def self.delete_movie_instance_from_user(user, movie_url)
-    user.movies.delete(user.find_movie_from_url(movie_url))
   end
 
   # private

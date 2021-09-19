@@ -1,10 +1,14 @@
 class WorldTopMovies::DB::User < ActiveRecord::Base
-  has_many :user_movies
+  has_many :user_movies, dependent: :destroy
   has_many :movies, through: :user_movies
 
   def print_all_favourite_movie_titles
-    self.movies.empty? && puts("Oops, you haven't favourited any movies yet!!")
-    self.movies.sort_by{|m| m.title}.each_with_index{|m,i| puts "#{i+1}. #{m.title}"}
+    if self.movies.empty? 
+      puts("Oops, you haven't favourited any movies yet!!")
+    else
+      puts("\nOk! Your favourite movies are:\n\n")
+      self.movies.sort_by{|m| m.title}.each_with_index{|m,i| WorldTopMovies::Movie.print_movie_compact(m, i)} 
+    end
   end
 
   def favourite_movie_titles

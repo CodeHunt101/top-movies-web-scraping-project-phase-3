@@ -10,9 +10,9 @@ class WorldTopMovies::CLI
   
   def run
     introduce if !self.user
-    run_favourite_movies_section if self.status != "exit"
-    scrape_and_print_movies  if self.status != "exit"
-    select_next_action if self.status != "exit"
+    run_favourite_movies_section
+    scrape_and_print_movies
+    select_next_action
   end
 
   # private #: set to private once project finished
@@ -74,8 +74,8 @@ class WorldTopMovies::CLI
   end
 
   def close_app
-    self.status = "exit"
     puts "\nOk #{self.user.username}, hope you enjoyed your time with me!"
+    exit!
   end
 
   def select_next_action
@@ -132,7 +132,7 @@ class WorldTopMovies::CLI
     # sleep(0.5)
     add_to_favourite = self.class.prompt.yes?("\nWould you like to add this movie to your favourites?")
     if add_to_favourite && self.user.movies.none?{|m| m.url == self.movie_instance.url}
-      WorldTopMovies::DB::Movie.add_movie(self.user, self.movie_instance.url)
+      WorldTopMovies::DB::Movie.add_movies(self.user, self.movie_instance.url)
       puts "\n#{self.movie_instance.title} has been added to your favourite movies!"
     else 
       add_to_favourite && puts("Oops! #{self.movie_instance.title} is already in your favourites!")
@@ -140,9 +140,11 @@ class WorldTopMovies::CLI
   end
 
   def delete_favourite_movies
+    # TODO: Move this to User??
     # sleep(0.5)
-    !self.user.movies.empty? && delete_favourites = self.class.prompt.yes?("\nWould you like to delete any of your favourite movies?")
-    if delete_favourites
+    if self.user.movies.empty?
+      puts "\nOops, you haven't favourited any movies yet!!"
+    else
       movie_urls = self.class.prompt.multi_select(
         "\nSelect movies: ", self.user.favourite_movie_titles, enum: ")")
       movie_urls.each do |movie_url|
@@ -164,7 +166,41 @@ class WorldTopMovies::CLI
     if favourite_movies
       self.user.print_all_favourite_movie_titles
       # sleep(1.5)
+      # TODO: if empty fav movies, don't show this menu!
+      select_next_action_favourites ##Here would be the change
+    end
+  end
+
+  def select_and_print_specific_movie_favourites
+    # Asks user to select a movie from print_movies_compact
+    # sleep(0.5)
+    puts ""
+    movie_url = self.class.prompt.enum_select(
+      "Select a movie: ", self.user.favourite_movie_titles)
+    WorldTopMovies::DB::Movie.all.find{|m| m.url == movie_url}.print_movie_details
+  end
+
+  def select_next_action_favourites
+    # Ask user to select a new action and re run the app from the chosen action
+    puts ""
+    # sleep(0.5)
+    options = [
+      "See more info of any of your favourite movies", 
+      "Delete any of your favourite movies", 
+      "Take me to see all the top movies" ]
+
+    next_action = self.class.prompt.select(
+      "What would you like to do now?", options
+    )
+    if next_action == options[0]
+      select_and_print_specific_movie_favourites
+      select_next_action_favourites
+    elsif next_action == options[1]
       delete_favourite_movies
+      select_next_action_favourites
+    else
+      scrape_and_print_movies   
+      select_next_action
     end
   end
 end

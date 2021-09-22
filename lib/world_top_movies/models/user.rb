@@ -1,6 +1,8 @@
 class WorldTopMovies::DB::User < ActiveRecord::Base
   has_many :user_movies, dependent: :destroy
   has_many :movies, through: :user_movies
+  has_many :user_notes, dependent: :destroy
+  has_many :notes, through: :user_notes
 
   def print_all_favourite_movie_titles
     if !self.movies.empty? 

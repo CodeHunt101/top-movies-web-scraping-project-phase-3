@@ -9,11 +9,8 @@ class WorldTopMovies::CLI
   end
   
   def run
-    introduce if !self.user
+    introduce
     select_movies_lookup_or_fav_movies
-    # run_favourite_movies_section
-    scrape_and_print_movies
-    select_next_action
   end
 
   # private #: set to private once project finished
@@ -45,6 +42,26 @@ class WorldTopMovies::CLI
     puts "Thanks #{username}. I'd like to ask you some questions, ok?"
   end
 
+  def select_movies_lookup_or_fav_movies
+    options = [
+      "Top Movies lookup",
+      "My Favourite Movies section",
+      "Exit app"
+    ]
+    next_action = self.class.prompt.select(
+      "Please choose where you want to go...", options
+    )
+    if next_action == options[0]
+      scrape_and_print_movies   
+      select_next_action
+    elsif next_action == options[1]
+      select_action_favourite_movies
+      select_next_action
+    else
+      close_app
+    end
+  end
+
   def scrape_and_print_movies
     # Asks the user which genre they want to see, then scrapres and generates the instances
     sleep(1.5)
@@ -57,26 +74,11 @@ class WorldTopMovies::CLI
     sleep(1.5)
     self.genre = nil if type_of_scrape == "General"
     type_of_scrape == "Genre" && (
-      self.genre = self.class.prompt.enum_select(
+      self.genre = self.class.prompt.select(
         "Choose a genre:\n", WorldTopMovies::Scraper.genres
       )
     )
     WorldTopMovies::Movie.scrape_and_print_movies_compact(self.genre)
-  end 
-
-  def select_and_print_specific_movie
-    # Asks user to select a movie from print_movies_compact
-    sleep(0.5)
-    puts ""
-    movie_url = self.class.prompt.enum_select(
-      "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre))
-    self.movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
-    self.movie_instance.scrape_and_print_movie
-  end
-
-  def close_app
-    puts "\nOk #{self.user.username}, hope you enjoyed your time with me!"
-    exit!
   end
 
   def select_next_action
@@ -87,9 +89,9 @@ class WorldTopMovies::CLI
       "See more info of a movie from the last selected genre or general list", 
       "Add favourite movies from the last selected genre or general list",
       "Start a new lookup", 
-      "Go to favourite movies section",
+      "Go to My Favourite Movies section",
       "Print all the movies displayed so far", 
-      "Exit" ]
+      "Exit app" ]
 
     next_action = self.class.prompt.select(
       "What would you like to do now?", options
@@ -114,7 +116,17 @@ class WorldTopMovies::CLI
       close_app
     end
   end
-  
+
+  def select_and_print_specific_movie
+    # Asks user to select a movie from print_movies_compact
+    sleep(0.5)
+    puts ""
+    movie_url = self.class.prompt.enum_select(
+      "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre))
+    self.movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
+    self.movie_instance.scrape_and_print_movie
+  end
+
   def add_favourite_movies
     # Finds or creates a new Favourite movie instances and adds them to the database
     sleep(0.5)
@@ -136,7 +148,7 @@ class WorldTopMovies::CLI
       WorldTopMovies::DB::Movie.add_movies(self.user, self.movie_instance.url)
       puts "\n#{self.movie_instance.title} has been added to your favourite movies!"
     else 
-      add_to_favourite && puts("Oops! #{self.movie_instance.title} is already in your favourites!")
+      add_to_favourite && puts("\nOops! #{self.movie_instance.title} is already in your favourites!")
     end
   end
 
@@ -160,17 +172,12 @@ class WorldTopMovies::CLI
   end
 
   def run_favourite_movies_section
-    # sleep(0.5)
-    # favourite_movies = self.class.prompt.yes?("\nWould you like to see all your favourite movies?")
     sleep(1)
-    # if favourite_movies
       if !self.user.movies.empty?
         self.user.print_all_favourite_movie_titles
-        # select_action_favourite_movies
       else
         puts("Oops, you haven't favourited any movies yet, let's change that!!")
       end
-    # end
   end
 
   def select_and_print_specific_favourite_movie
@@ -209,31 +216,16 @@ class WorldTopMovies::CLI
     elsif next_action == options[2]
       delete_favourite_movies
       select_action_favourite_movies
-    elsif
+    elsif next_action == options[3]
       scrape_and_print_movies   
-      select_next_action
-    else
-      exit_app
-    end
-  end
-
-  def select_movies_lookup_or_fav_movies
-    options = [
-      "Top Movies lookup",
-      "Favourite movies section",
-      "Exit app"
-    ]
-    next_action = self.class.prompt.select(
-      "Please choose where you want to go...", options
-    )
-    if next_action == options[0]
-      scrape_and_print_movies   
-      select_next_action
-    elsif next_action == options[1]
-      select_action_favourite_movies
       select_next_action
     else
       close_app
     end
+  end
+
+  def close_app
+    puts "\nOk #{self.user.username}, hope you enjoyed your time with me!"
+    exit!
   end
 end

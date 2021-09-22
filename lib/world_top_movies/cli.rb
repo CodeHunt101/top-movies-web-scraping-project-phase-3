@@ -10,7 +10,8 @@ class WorldTopMovies::CLI
   
   def run
     introduce if !self.user
-    run_favourite_movies_section
+    select_movies_lookup_or_fav_movies
+    # run_favourite_movies_section
     scrape_and_print_movies
     select_next_action
   end
@@ -104,7 +105,7 @@ class WorldTopMovies::CLI
       scrape_and_print_movies   
       select_next_action 
     elsif next_action == options[3]
-      run_favourite_movies_section
+      select_action_favourite_movies
       select_next_action
     elsif next_action == options[4]
       WorldTopMovies::Movie.scrape_and_print_movies_compact("all")
@@ -159,21 +160,20 @@ class WorldTopMovies::CLI
   end
 
   def run_favourite_movies_section
-    sleep(0.5)
-    favourite_movies = self.class.prompt.yes?("\nWould you like to see all your favourite movies?")
+    # sleep(0.5)
+    # favourite_movies = self.class.prompt.yes?("\nWould you like to see all your favourite movies?")
     sleep(1)
-    if favourite_movies
+    # if favourite_movies
       if !self.user.movies.empty?
         self.user.print_all_favourite_movie_titles
-        sleep(1.5)
-        select_next_action_favourites
+        # select_action_favourite_movies
       else
         puts("Oops, you haven't favourited any movies yet, let's change that!!")
       end
-    end
+    # end
   end
 
-  def select_and_print_specific_movie_favourites
+  def select_and_print_specific_favourite_movie
     # Asks user to select a movie from print_movies_compact
     sleep(0.5)
     if self.user.movies.empty?
@@ -186,27 +186,54 @@ class WorldTopMovies::CLI
     end
   end
 
-  def select_next_action_favourites
+  def select_action_favourite_movies
     # Ask user to select a new action and re run the app from the chosen action
     puts ""
     sleep(0.5)
     options = [
+      "See all your favourite movies",
       "See more info of any of your favourite movies", 
       "Delete any of your favourite movies", 
-      "Take me to see all the top movies" ]
+      "Take me to the top movies lookup",
+      "Exit app"]
 
     next_action = self.class.prompt.select(
       "What would you like to do now?", options
     )
     if next_action == options[0]
-      select_and_print_specific_movie_favourites
-      select_next_action_favourites
+      run_favourite_movies_section
+      select_action_favourite_movies
     elsif next_action == options[1]
+      select_and_print_specific_favourite_movie
+      select_action_favourite_movies
+    elsif next_action == options[2]
       delete_favourite_movies
-      select_next_action_favourites
-    else
+      select_action_favourite_movies
+    elsif
       scrape_and_print_movies   
       select_next_action
+    else
+      exit_app
+    end
+  end
+
+  def select_movies_lookup_or_fav_movies
+    options = [
+      "Top Movies lookup",
+      "Favourite movies section",
+      "Exit app"
+    ]
+    next_action = self.class.prompt.select(
+      "Please choose where you want to go...", options
+    )
+    if next_action == options[0]
+      scrape_and_print_movies   
+      select_next_action
+    elsif next_action == options[1]
+      select_action_favourite_movies
+      select_next_action
+    else
+      close_app
     end
   end
 end

@@ -5,7 +5,11 @@ class WorldTopMovies::DB::User < ActiveRecord::Base
   def print_all_favourite_movie_titles
     if !self.movies.empty? 
       puts("\nOk! Your favourite movies are:\n\n")
-      self.movies.sort_by{|m| m.title}.each_with_index{|m,i| WorldTopMovies::Movie.print_movie_compact(m, i)} 
+      sleep(1.5)
+      self.movies.sort_by{|m| m.title}.each_with_index do |m,i| 
+        sleep(0.01)
+        WorldTopMovies::Movie.print_movie_compact(m, i)
+      end
     end
   end
 

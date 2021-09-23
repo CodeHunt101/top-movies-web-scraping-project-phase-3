@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_09_15_070809) do
+ActiveRecord::Schema.define(version: 2021_09_22_215434) do
 
   create_table "movies", force: :cascade do |t|
     t.string "title"
@@ -29,11 +29,26 @@ ActiveRecord::Schema.define(version: 2021_09_15_070809) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "user_movies", force: :cascade do |t|
-    t.integer "user_id"
-    t.string "movie_id"
+  create_table "notes", force: :cascade do |t|
+    t.text "note_message"
+    t.integer "movie_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "user_movies", force: :cascade do |t|
+    t.integer "user_id"
+    t.integer "movie_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "user_notes", force: :cascade do |t|
+    t.integer "user_id"
+    t.integer "note_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["note_id"], name: "index_user_notes_on_note_id", unique: true
   end
 
   create_table "users", force: :cascade do |t|

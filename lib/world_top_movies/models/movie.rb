@@ -1,6 +1,7 @@
 class WorldTopMovies::DB::Movie < ActiveRecord::Base
   has_many :user_movies
   has_many :users, through: :user_movies
+  has_many :notes
 
   def self.generate_attributes_from_url(movie_url)
     fav_movie = WorldTopMovies::Movie.find_by_url(movie_url)

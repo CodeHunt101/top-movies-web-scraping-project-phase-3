@@ -13,7 +13,7 @@ class CreateMovies < ActiveRecord::Migration[5.2]
       t.integer :votes
       t.string :gross_revenue
       t.string :url
-      
+
       t.timestamps
     end
   end

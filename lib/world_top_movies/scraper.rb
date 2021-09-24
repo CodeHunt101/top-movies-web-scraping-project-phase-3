@@ -1,5 +1,4 @@
 class WorldTopMovies::Scraper
-  
   @@genres = [
     "Action",
     "Adventure",
@@ -17,7 +16,7 @@ class WorldTopMovies::Scraper
     "Sci-Fi",
     "Sport",
     "Thriller",
-    "War"
+    "War",
   ]
 
   def self.genres
@@ -40,7 +39,7 @@ class WorldTopMovies::Scraper
     # Iterates over all movies from the XML object and creates new instances
     self.get_movies(genre).each do |m|
       movie = WorldTopMovies::Movie.new_from_page(m)
-      # Fixed error from website? Include genre to the genre property if for some reson it's not there (confirm!!!!)
+      # Include genre to the genre property if for some reason the website doesn't include it
       genre && !movie.genres.include?(genre) && movie.genres << genre
     end
   end
@@ -49,5 +48,4 @@ class WorldTopMovies::Scraper
     response = HTTParty.get(movie_url)
     Nokogiri::HTML(response.body)
   end
-
 end

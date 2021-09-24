@@ -15,7 +15,7 @@ class WorldTopMovies::DB::Note < ActiveRecord::Base
     user.notes << note_record
   end
 
-  def self.delete_note_instance_from_user(user: , note_id: )
+  def self.delete_note_instance_from_user(user:, note_id:)
     user.notes.delete(user.find_note_from_id(note_id))
   end
 end

@@ -24,13 +24,12 @@ class WorldTopMovies::DB::Movie < ActiveRecord::Base
   def self.add_movies(user:, movie_urls:)
     # Finds or creates new Favourite movie instances and adds them to the given user
     movie_urls.class != Array && movie_urls = movie_urls.split()
-      movie_urls.each do |movie_url|
-        if user.movies.none?{|m| m.url == movie_url}
-          attributes = self.generate_attributes_from_url(movie_url)
-          user.movies << self.find_or_create_by(attributes)
-        end
+    movie_urls.each do |movie_url|
+      if user.movies.none? { |m| m.url == movie_url }
+        attributes = self.generate_attributes_from_url(movie_url)
+        user.movies << self.find_or_create_by(attributes)
       end
-
+    end
   end
 
   def print_movie_details
@@ -47,7 +46,7 @@ class WorldTopMovies::DB::Movie < ActiveRecord::Base
       votes: self.votes,
       gross_revenue: self.gross_revenue,
       url: self.url,
-      database: true
+      database: true,
     }
     movie = WorldTopMovies::Movie.new(attributes)
     movie.scrape_and_print_movie
@@ -56,9 +55,9 @@ class WorldTopMovies::DB::Movie < ActiveRecord::Base
 
   def print_movie_notes
     logged_user = WorldTopMovies::CLI.user
-    notes = self.notes.select{|n| n.user && n.user.username == logged_user.username}
+    notes = self.notes.select { |n| n.user && n.user.username == logged_user.username }
     puts "\n----------------#{"My Own notes".bold}------------------"
-    notes.empty? ? puts("No notes left") : notes.each{|n| puts "\n-#{n.note_message}- on #{n.created_at.localtime}"}
+    notes.empty? ? puts("No notes left") : notes.each { |n| puts "\n-#{n.note_message}- on #{n.created_at.localtime}" }
     puts "----------------------------------------------"
   end
 end

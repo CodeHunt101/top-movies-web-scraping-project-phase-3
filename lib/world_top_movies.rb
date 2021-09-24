@@ -1,8 +1,6 @@
 module WorldTopMovies
-
-    class DB
-    end
-  
+  class DB
+  end
 end
 
-require_relative '../config/environment'
+require_relative "../config/environment"

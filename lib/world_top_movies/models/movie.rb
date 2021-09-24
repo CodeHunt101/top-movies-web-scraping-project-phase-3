@@ -21,7 +21,7 @@ class WorldTopMovies::DB::Movie < ActiveRecord::Base
     }
   end
 
-  def self.add_movies(user, movie_urls)
+  def self.add_movies(user:, movie_urls:)
     # Finds or creates new Favourite movie instances and adds them to the given user
     movie_urls.class != Array && movie_urls = movie_urls.split()
       movie_urls.each do |movie_url|
@@ -51,5 +51,14 @@ class WorldTopMovies::DB::Movie < ActiveRecord::Base
     }
     movie = WorldTopMovies::Movie.new(attributes)
     movie.scrape_and_print_movie
+    print_movie_notes
+  end
+
+  def print_movie_notes
+    logged_user = WorldTopMovies::CLI.user
+    notes = self.notes.select{|n| n.user.username == logged_user.username}
+    puts "\n----------------#{"My Own notes".bold}------------------"
+    notes.empty? ? puts("No notes left") : notes.each{|n| puts "\n#{n.note_message} on #{n.created_at}"}
+    puts "----------------------------------------------"
   end
 end

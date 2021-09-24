@@ -80,7 +80,7 @@ class WorldTopMovies::Movie
     self.all.find {|m| m.url == url}
   end
 
-  def self.delete_movie_instance_from_user(user, movie_url)
+  def self.delete_movie_instance_from_user(user: , movie_url: )
     user.movies.delete(user.find_movie_from_url(movie_url))
   end
 
@@ -146,8 +146,6 @@ Year: #{movie.year.colorize(:color => :red)} \n"
 
   def scrape_and_print_movie
     # Prints detailed info of a selected movie from select_specific_movie, after scraping it.
-    
-    # These two variables take some time to load, so I call them before they are printed to show everything at the same time (Confirm!!!!)
     description = self.description
     storyline = self.storyline
     puts "\n----------------------------------------------"

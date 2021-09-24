@@ -58,7 +58,7 @@ class WorldTopMovies::DB::Movie < ActiveRecord::Base
     logged_user = WorldTopMovies::CLI.user
     notes = self.notes.select{|n| n.user.username == logged_user.username}
     puts "\n----------------#{"My Own notes".bold}------------------"
-    notes.empty? ? puts("No notes left") : notes.each{|n| puts "\n#{n.note_message} on #{n.created_at}"}
+    notes.empty? ? puts("No notes left") : notes.each{|n| puts "\n-#{n.note_message}- on #{n.created_at}"}
     puts "----------------------------------------------"
   end
 end

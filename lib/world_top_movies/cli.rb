@@ -49,9 +49,9 @@ class WorldTopMovies::CLI
 
   def select_movies_lookup_or_fav_movies
     options = [
-      "Top Movies lookup",
+      "Top Movies Lookup",
       "My Favourite Movies section",
-      "My movie notes",
+      "My Movie Notes",
       "Exit app"
     ]
     next_action = self.class.prompt.select(
@@ -99,6 +99,7 @@ class WorldTopMovies::CLI
       "Add favourite movies from the last selected genre or general list",
       "Start a new lookup", 
       "Go to My Favourite Movies section",
+      "Go to My Movie notes",
       "Print all the movies displayed so far", 
       "Exit app" ]
 
@@ -108,22 +109,14 @@ class WorldTopMovies::CLI
     if next_action == options[0]
       select_and_print_specific_movie
       add_fav_or_leave_note
-      select_next_action
-    elsif next_action == options[1]
-      add_favourite_movies
-      select_next_action
-    elsif next_action == options[2]
-      scrape_and_print_movies   
-      select_next_action 
-    elsif next_action == options[3]
-      select_action_favourite_movies
-      select_next_action
-    elsif next_action == options[4]
-      WorldTopMovies::Movie.scrape_and_print_movies_compact("all")
-      select_next_action
-    else
-      close_app
     end
+    next_action == options[1] && add_favourite_movies
+    next_action == options[2] && scrape_and_print_movies
+    next_action == options[3] && select_action_favourite_movies
+    next_action == options[4] && select_action_movies_with_notes
+    next_action == options[5] && WorldTopMovies::Movie.scrape_and_print_movies_compact("all")
+    next_action == options.last && close_app
+    select_next_action
   end
 
   def select_and_print_specific_movie
@@ -153,11 +146,14 @@ class WorldTopMovies::CLI
     options = [
       "Add it to your favourites",
       "Leave a note",
+      "Nothing in particular"
     ]
+    puts ""
     next_action = self.class.prompt.select(
       "What would you like to do with this movie?", options
     )
-    next_action == options[0] ? add_favourite_movie : leave_note
+    next_action == options[0] && add_favourite_movie 
+    next_action == options[1] && leave_note
     select_next_action
   end
 
@@ -173,12 +169,12 @@ class WorldTopMovies::CLI
   def add_favourite_movie
     # Finds or creates a new Favourite movie instance and adds it to the database
     # sleep(0.5)
-    add_to_favourite = self.class.prompt.yes?("\nWould you like to add this movie to your favourites?")
-    if add_to_favourite && self.class.user.movies.none?{|m| m.url == self.movie_instance.url}
+    # add_to_favourite = self.class.prompt.yes?("\nWould you like to add this movie to your favourites?")
+    if self.class.user.movies.none?{|m| m.url == self.movie_instance.url}
       WorldTopMovies::DB::Movie.add_movies(user: self.class.user, movie_urls: self.movie_instance.url)
       puts "\n#{self.movie_instance.title} has been added to your favourite movies!"
     else 
-      add_to_favourite && puts("\nOops! #{self.movie_instance.title} is already in your favourites!")
+      puts("\nOops! #{self.movie_instance.title} is already in your favourites!")
     end
   end
 
@@ -201,7 +197,7 @@ class WorldTopMovies::CLI
     end
   end
 
- def run_favourite_movies_section
+ def print_favourite_movies
     # sleep(1)
       if !self.class.user.movies.empty?
         self.class.user.print_all_favourite_movie_titles
@@ -242,7 +238,7 @@ class WorldTopMovies::CLI
         "What would you like to do now?", options
       )
       if next_action == options[0]
-        run_favourite_movies_section
+        print_favourite_movies
         select_action_favourite_movies
       elsif next_action == options[1]
         select_and_print_specific_favourite_movie
@@ -259,7 +255,15 @@ class WorldTopMovies::CLI
     end
   end
 
-  def run_movies_with_notes_section
+  def print_all_notes
+    if !self.class.user.notes.empty?
+      self.class.user.print_all_notes
+    else
+      puts "\nOops, you haven't left any notes yet!!"
+    end
+  end
+  
+  def print_movies_with_notes
     # sleep(1)
       if !self.class.user.notes.empty?
         self.class.user.print_movies_with_notes
@@ -281,6 +285,25 @@ class WorldTopMovies::CLI
     end
   end
 
+  def delete_notes
+    # sleep(0.5)
+    if self.class.user.movies.empty?
+      puts "\nOops, you haven't left any notes yet!!"
+    else
+      note_ids = self.class.prompt.multi_select(
+        "\nSelect notes: ", self.class.user.notes_titles, enum: ")")
+      note_ids.each do |note_id|
+        WorldTopMovies::DB::UserNote.delete_note_record_from_user(user: self.class.user, note_id: note_id)
+        WorldTopMovies::DB::Note.delete_note_instance_from_user(user: self.class.user, note_id: note_id)
+      end
+      if note_ids.size > 0
+        puts("\nThe note(s) have been successfully deleted")
+      else
+        puts("\nNo notes were selected.")
+      end
+    end
+  end
+
   def select_action_movies_with_notes
     puts ""
     if self.class.user.notes.empty?
@@ -290,7 +313,7 @@ class WorldTopMovies::CLI
     else
       # sleep(0.5)
       options = [
-        "See all my notes (WORKING ON THIS)",
+        "See all my notes",
         "See all your movies_with_notes",
         "Open specific movie with notes", 
         "Delete any of your notes", 
@@ -301,16 +324,16 @@ class WorldTopMovies::CLI
         "What would you like to do now?", options
       )
       if next_action == options[0]
-        puts "Coming soon..." #TODO
+        print_all_notes
         select_action_movies_with_notes
       elsif next_action == options[1]
-        run_movies_with_notes_section
+        print_movies_with_notes
         select_action_movies_with_notes
       elsif next_action == options[2]
         select_and_print_specific_movie_with_notes
         select_action_movies_with_notes
       elsif next_action == options[3]
-        puts "Coming soon..." #TODO
+        delete_notes
         select_action_movies_with_notes
       elsif next_action == options[4]
         scrape_and_print_movies   

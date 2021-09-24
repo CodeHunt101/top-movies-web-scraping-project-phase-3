@@ -43,4 +43,26 @@ class WorldTopMovies::DB::User < ActiveRecord::Base
     self.notes.map {|note| note.movie}.uniq
   end
 
+  def print_all_notes
+    puts "\nPrinting #{self.notes.count} note(s):\n\n"
+    sleep(1.5)
+    self.notes.each_with_index do |n,i|
+    sleep(0.01)
+    puts "--------------------------------------------------------------"
+    puts "\n#{i+1}. #{n.note_message.colorize(:color => :green).italic}, \
+Movie: #{n.movie.title.colorize(:color => :light_blue).bold}, \
+Date: #{n.created_at.to_s.colorize(:color => :red).bold} \n"
+    end
+  end
+
+  def notes_titles
+    result = {}
+    self.notes.each{|n| result["#{n.note_message}, #{n.movie.title}, #{n.created_at.to_s}"] = n.id}
+    result
+  end
+
+  def find_note_from_id(note_id)
+    self.notes.find{|n|n.id == note_id}
+  end
+
 end

@@ -57,18 +57,11 @@ class WorldTopMovies::CLI
     next_action = self.class.prompt.select(
       "\nPlease choose where you want to go...", options
     )
-    if next_action == options[0]
-      scrape_and_print_movies   
-      select_next_action
-    elsif next_action == options[1]
-      select_action_favourite_movies
-      select_next_action
-    elsif next_action == options[2]
-      select_action_movies_with_notes
-      select_next_action
-    else
-      close_app
-    end
+    next_action == options[0] && scrape_and_print_movies
+    next_action == options[1] && select_action_favourite_movies  
+    next_action == options[2] && select_action_movies_with_notes
+    next_action == options.last && close_app  
+    select_next_action
   end
 
   def scrape_and_print_movies
@@ -314,7 +307,7 @@ class WorldTopMovies::CLI
       # sleep(0.5)
       options = [
         "See all my notes",
-        "See all your movies_with_notes",
+        "See all your movies with notes",
         "Open specific movie with notes", 
         "Delete any of your notes", 
         "Take me to the top movies lookup",

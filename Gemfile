@@ -11,11 +11,3 @@ gem "sqlite3"
 gem 'rake', "~> 13.0"
 gem 'require_all'
 gem "sinatra-activerecord"
-gem "faker"
-
-
-
-
-
-
-

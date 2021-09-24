@@ -51,13 +51,13 @@ class WorldTopMovies::DB::User < ActiveRecord::Base
     puts "--------------------------------------------------------------"
     puts "\n#{i+1}. #{n.note_message.colorize(:color => :green).italic}, \
 Movie: #{n.movie.title.colorize(:color => :light_blue).bold}, \
-Date: #{n.created_at.to_s.colorize(:color => :red).bold} \n"
+Date: #{n.created_at.localtime.to_s.colorize(:color => :red).bold} \n"
     end
   end
 
   def notes_titles
     result = {}
-    self.notes.each{|n| result["#{n.note_message}, #{n.movie.title}, #{n.created_at.to_s}"] = n.id}
+    self.notes.each{|n| result["#{n.note_message}, #{n.movie.title}, #{n.created_at.localtime.to_s}"] = n.id}
     result
   end
 

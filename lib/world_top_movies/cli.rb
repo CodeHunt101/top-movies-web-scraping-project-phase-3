@@ -23,12 +23,12 @@ class WorldTopMovies::CLI
     # Introduces the app and ask for user credentials
     artii = Artii::Base.new({})
     puts "-----------------------------------------------------------------------------------"
-    puts artii.asciify("World Top Movies!")
+    puts artii.asciify("World's Top Movies!")
     puts "-----------------------------------------------------------------------------------"
     puts "    By Harold Torres Marino | p: +61 401 927 123 | e: haroldtm55@gmail.com".colorize(:mode => :italic)
     puts "-----------------------------------------------------------------------------------"
     sleep(0.5)
-    puts "\nWelcome to the World Top Movies of all times, a place where you can look up for worldwide top rated movies!\n\n"
+    puts "\nWelcome to the World's Top Movies of all times, a place where you can look up for worldwide top rated movies!\n\n"
     sleep(1.5)
     username = self.class.prompt.ask("Please enter your username to log in or sign up: ") do |q|
       q.required(true, "Oops, seems you haven't provided your username! Try again please.")
@@ -110,7 +110,7 @@ class WorldTopMovies::CLI
     sleep(0.5)
     puts ""
     movie_url = self.class.prompt.select(
-      "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre), enum: ")"
+      "Select a movie: ", WorldTopMovies::Movie.all_titles_and_links_hash_by_genre(self.genre), enum: ")",
     )
     self.movie_instance = WorldTopMovies::Movie.find_by_url(movie_url)
     self.movie_instance.scrape_and_print_movie
@@ -194,9 +194,8 @@ class WorldTopMovies::CLI
       puts "\nOops, you haven't favourited any movies yet!!"
     else
       puts ""
-      
       movie_url = self.class.prompt.select(
-        "Select a movie: ", self.class.user.favourite_movie_titles, enum: ")"
+        "Select a movie: ", self.class.user.favourite_movie_titles, enum: ")",
       )
       WorldTopMovies::DB::Movie.all.find { |m| m.url == movie_url }.print_movie_details
     end
@@ -264,7 +263,7 @@ class WorldTopMovies::CLI
     else
       puts ""
       movie_url = self.class.prompt.select(
-        "Select a movie: ", self.class.user.movies_with_notes_titles, enum: ")"
+        "Select a movie: ", self.class.user.movies_with_notes_titles, enum: ")",
       )
       WorldTopMovies::DB::Movie.all.find { |m| m.url == movie_url }.print_movie_details
     end

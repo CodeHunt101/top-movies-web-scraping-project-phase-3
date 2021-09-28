@@ -153,7 +153,6 @@ class WorldTopMovies::CLI
   def add_favourite_movie
     # Finds or creates a new Favourite movie instance and adds it to the database
     sleep(0.5)
-    # add_to_favourite = self.class.prompt.yes?("\nWould you like to add this movie to your favourites?")
     if self.class.user.movies.none? { |m| m.url == self.movie_instance.url }
       WorldTopMovies::DB::Movie.add_movies(user: self.class.user, movie_urls: self.movie_instance.url)
       puts "\n#{self.movie_instance.title} has been added to your favourite movies!"

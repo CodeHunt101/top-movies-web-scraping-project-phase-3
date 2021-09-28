@@ -14,7 +14,7 @@ class WorldTopMovies::DB::User < ActiveRecord::Base
   end
 
   def favourite_movie_titles
-    # returns a hash with key=title, value=url of all fav movies
+    # Returns a hash with key=title, value=url of all fav movies
     result = {}
     self.movies.sort_by { |m| m.title }.each { |m| result[m.title] = m.url }
     result
